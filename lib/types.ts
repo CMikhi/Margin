@@ -30,3 +30,14 @@ export type CustomPage = {
   icon: string
   createdAt: number
 }
+
+// Calendar Events
+export interface CalendarEvent {
+  id: string
+  title: string
+  startDate: string // ISO date string (YYYY-MM-DD)
+  endDate: string   // ISO date string (YYYY-MM-DD)
+  time: string      // 'all-day' or specific time like '09:00'
+  description: string
+  color: string
+}

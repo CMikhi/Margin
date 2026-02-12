@@ -244,6 +244,52 @@ export function useGridLayout(pageId?: string) {
     return widgetId
   }, [layout])
 
+  const addCalendarWidget = useCallback(() => {
+    const widgetId = 'calendar'
+    // Remove from hidden widgets if it was hidden
+    setHiddenWidgets((prev) => {
+      const newHidden = new Set(prev)
+      newHidden.delete(widgetId)
+      localStorage.setItem(getStorageKey('margin-hidden-widgets', pageId), JSON.stringify([...newHidden]))
+      return newHidden
+    })
+    
+    // If not in layout, add it
+    if (!layout[widgetId]) {
+      const spot = findEmptySpot(layout, 6, 6)
+      if (!spot) {
+        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 6, rowSpan: 6 } }))
+      } else {
+        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 6, rowSpan: 6 } }))
+      }
+    }
+    
+    return widgetId
+  }, [layout, pageId])
+
+  const addDailyEventsWidget = useCallback(() => {
+    const widgetId = 'dailyEvents'
+    // Remove from hidden widgets if it was hidden
+    setHiddenWidgets((prev) => {
+      const newHidden = new Set(prev)
+      newHidden.delete(widgetId)
+      localStorage.setItem(getStorageKey('margin-hidden-widgets', pageId), JSON.stringify([...newHidden]))
+      return newHidden
+    })
+    
+    // If not in layout, add it
+    if (!layout[widgetId]) {
+      const spot = findEmptySpot(layout, 3, 4)
+      if (!spot) {
+        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 4 } }))
+      } else {
+        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 4 } }))
+      }
+    }
+    
+    return widgetId
+  }, [layout, pageId])
+
   const updateTextWidget = useCallback((widgetId: string, text: string) => {
     setTextWidgets((prev) => ({ ...prev, [widgetId]: text }))
   }, [])
@@ -283,5 +329,20 @@ export function useGridLayout(pageId?: string) {
     localStorage.removeItem(getStorageKey('margin-hidden-widgets', pageId))
   }, [pageId])
 
-  return { layout, textWidgets, staticContent, hiddenWidgets, moveWidget, resizeWidget, addTextWidget, updateTextWidget, updateStaticContent, deleteWidget, resetLayout, isLoaded }
+  return { 
+    layout, 
+    textWidgets, 
+    staticContent, 
+    hiddenWidgets, 
+    moveWidget, 
+    resizeWidget, 
+    addTextWidget, 
+    addCalendarWidget,
+    addDailyEventsWidget,
+    updateTextWidget, 
+    updateStaticContent, 
+    deleteWidget, 
+    resetLayout, 
+    isLoaded 
+  }
 }

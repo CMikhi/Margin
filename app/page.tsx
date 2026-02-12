@@ -6,6 +6,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { DashboardGrid } from '@/components/DashboardGrid';
 import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
 import { EditableTextWidget } from '@/components/EditableTextWidget';
+import { CalendarWidget } from '@/components/CalendarWidget';
+import { DailyEventsWidget } from '@/components/DailyEventsWidget';
 import { EditableSpan } from '@/components/EditableSpan';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 
@@ -132,7 +134,22 @@ const DEFAULT_STATIC_CONTENT = {
 };
 
 export default function Home() {
-  const { layout, textWidgets, staticContent, hiddenWidgets, moveWidget, resizeWidget, addTextWidget, updateTextWidget, updateStaticContent, deleteWidget, resetLayout, isLoaded } = useGridLayout();
+  const { 
+    layout, 
+    textWidgets, 
+    staticContent, 
+    hiddenWidgets, 
+    moveWidget, 
+    resizeWidget, 
+    addTextWidget,
+    addCalendarWidget,
+    addDailyEventsWidget,
+    updateTextWidget, 
+    updateStaticContent, 
+    deleteWidget, 
+    resetLayout, 
+    isLoaded 
+  } = useGridLayout();
 
   // Get initial greeting based on time if not already customized
   const [greeting, setGreeting] = useState('Good morning');
@@ -195,7 +212,29 @@ export default function Home() {
         />
       ),
     },
-  ], [currentGreeting, welcomeMessage, quicklinksTitle, shortcutHint, updateStaticContent]);
+    {
+      id: 'calendar',
+      minColSpan: 4,
+      minRowSpan: 4,
+      content: (
+        <CalendarWidget
+          id="calendar"
+          onDelete={deleteWidget}
+        />
+      ),
+    },
+    {
+      id: 'dailyEvents',
+      minColSpan: 2,
+      minRowSpan: 3,
+      content: (
+        <DailyEventsWidget
+          id="dailyEvents"
+          onDelete={deleteWidget}
+        />
+      ),
+    },
+  ], [currentGreeting, welcomeMessage, quicklinksTitle, shortcutHint, updateStaticContent, deleteWidget]);
 
   const allWidgets = useMemo(() => {
     // Filter out hidden static widgets
@@ -204,7 +243,12 @@ export default function Home() {
   }, [STATIC_WIDGETS, dynamicWidgets, hiddenWidgets]);
 
   return (
-    <PageWithCommandMenu onAddTextWidget={addTextWidget}>
+    <PageWithCommandMenu 
+      pageTitle="🏠 Home"
+      onAddTextBox={addTextWidget}
+      onAddCalendar={addCalendarWidget}
+      onAddDailyEvents={addDailyEventsWidget}
+    >
       <DashboardGrid
         widgets={allWidgets}
         layout={layout}

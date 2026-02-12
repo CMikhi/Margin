@@ -38,10 +38,18 @@ const menuVariants = {
 }
 
 interface CommandMenuProps {
+  pageTitle?: string
   onAddTextWidget?: () => void
+  onAddCalendar?: () => void
+  onAddDailyEvents?: () => void
 }
 
-export function CommandMenu({ onAddTextWidget }: CommandMenuProps) {
+export function CommandMenu({ 
+  pageTitle,
+  onAddTextWidget,
+  onAddCalendar,
+  onAddDailyEvents
+}: CommandMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -116,6 +124,38 @@ export function CommandMenu({ onAddTextWidget }: CommandMenuProps) {
             ),
             action: () => onAddTextWidget(),
             keywords: ['add', 'text', 'widget', 'note', 'write', 'create'],
+          },
+        ]
+      : []),
+    ...(onAddCalendar
+      ? [
+          {
+            id: 'add-calendar',
+            label: 'Add Calendar Widget',
+            description: 'Add a full calendar to the page',
+            icon: (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+            ),
+            action: () => onAddCalendar(),
+            keywords: ['add', 'calendar', 'widget', 'month', 'schedule', 'create'],
+          },
+        ]
+      : []),
+    ...(onAddDailyEvents
+      ? [
+          {
+            id: 'add-daily-events',
+            label: 'Add Daily Events Widget',
+            description: 'Add a widget showing today\'s events',
+            icon: (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+            action: () => onAddDailyEvents(),
+            keywords: ['add', 'daily', 'events', 'today', 'widget', 'tasks', 'create'],
           },
         ]
       : []),

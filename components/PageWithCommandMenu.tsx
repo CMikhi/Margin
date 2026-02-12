@@ -4,14 +4,29 @@ import { CommandMenu } from './CommandMenu'
 
 interface PageWithCommandMenuProps {
   children: React.ReactNode
-  onAddTextWidget?: () => void
+  pageTitle?: string
+  onAddTextBox?: () => void
+  onAddCalendar?: () => void
+  onAddDailyEvents?: () => void
 }
 
-export function PageWithCommandMenu({ children, onAddTextWidget }: PageWithCommandMenuProps) {
+export function PageWithCommandMenu({ 
+  children, 
+  pageTitle,
+  onAddTextBox, 
+  onAddCalendar,
+  onAddDailyEvents
+}: PageWithCommandMenuProps) {
   return (
     <>
-      <CommandMenu onAddTextWidget={onAddTextWidget} />
+      <CommandMenu 
+        pageTitle={pageTitle}
+        onAddTextWidget={onAddTextBox} 
+        onAddCalendar={onAddCalendar}
+        onAddDailyEvents={onAddDailyEvents}
+      />
       {children}
     </>
   )
 }
+

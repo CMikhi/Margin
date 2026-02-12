@@ -2,101 +2,26 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CalendarEvent } from '@/lib/types';
+import { 
+  loadEvents, 
+  saveEvents, 
+  formatDateKey, 
+  parseDate, 
+  getDaysBetween, 
+  isToday as utilIsToday,
+  getEventsForDay as utilGetEventsForDay,
+  EVENT_COLORS,
+  loadRecentColors,
+  saveRecentColors
+} from '@/lib/utils/calendarStorage';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
-interface CalendarEvent {
-  id: string;
-  title: string;
-  startDate: string; // ISO date string (YYYY-MM-DD)
-  endDate: string;   // ISO date string (YYYY-MM-DD)
-  time: string;      // 'all-day' or specific time like '09:00'
-  description: string;
-  color: string;
-}
-
 interface DayInfo {
   day: number;
   isCurrentMonth: boolean;
   date: Date;
   dateKey: string;
-}
-
-// ─── Event Colors ──────────────────────────────────────────────────────────────
-const EVENT_COLORS = [
-  { name: 'Red', value: '#A41623' },
-  { name: 'Orange', value: '#F85E00' },
-  { name: 'Sand', value: '#FFB563' },
-  { name: 'Appricot', value: '#FFD29D' },
-  { name: 'Olive', value: '#918450' },
-  { name: 'Sage', value: '#C9CBA3' },
-  { name: 'Coral', value: '#E26D5C' },
-  { name: 'Plum', value: '#723D46' },
-];
-
-// ─── Storage ───────────────────────────────────────────────────────────────────
-const EVENTS_STORAGE_KEY = 'margin-calendar-events';
-
-function loadEvents(): CalendarEvent[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(EVENTS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveEvents(events: CalendarEvent[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events));
-  } catch {
-    // ignore
-  }
-}
-
-const RECENT_COLORS_KEY = 'margin-recent-colors';
-
-function loadRecentColors(): string[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(RECENT_COLORS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRecentColors(colors: string[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(colors.slice(0, 8)));
-  } catch {
-    // ignore
-  }
-}
-
-// ─── Utilities ─────────────────────────────────────────────────────────────────
-function formatDateKey(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-function parseDate(dateKey: string): Date {
-  const [year, month, day] = dateKey.split('-').map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function getDaysBetween(start: string, end: string): string[] {
-  const days: string[] = [];
-  const startDate = parseDate(start);
-  const endDate = parseDate(end);
-  const current = new Date(startDate);
-  
-  while (current <= endDate) {
-    days.push(formatDateKey(current));
-    current.setDate(current.getDate() + 1);
-  }
-  return days;
 }
 
 const pageVariants = {
@@ -278,13 +203,6 @@ export default function CalendarComponent() {
     setCurrentDate(new Date());
   };
 
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-           date.getMonth() === today.getMonth() &&
-           date.getFullYear() === today.getFullYear();
-  };
-
   // Handle day click for selection
   const handleDayClick = useCallback((dateKey: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -450,10 +368,7 @@ export default function CalendarComponent() {
 
   // Get events that appear on a specific day
   const getEventsForDay = useCallback((dateKey: string) => {
-    return events.filter(event => {
-      const eventDays = getDaysBetween(event.startDate, event.endDate);
-      return eventDays.includes(dateKey);
-    });
+    return utilGetEventsForDay(events, dateKey);
   }, [events]);
 
   return (
@@ -560,7 +475,7 @@ export default function CalendarComponent() {
                 >
                   {/* Day number */}
                   <div className="flex justify-end mb-1">
-                    {isToday(dayInfo.date) ? (
+                    {utilIsToday(dayInfo.date) ? (
                       <div
                         className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium"
                         style={{ backgroundColor: 'var(--accent-blue)', color: 'white' }}

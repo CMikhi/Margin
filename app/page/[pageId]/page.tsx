@@ -5,6 +5,8 @@ import { useState, useEffect, useMemo, use } from 'react';
 import { DashboardGrid } from '@/components/DashboardGrid';
 import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
 import { EditableTextWidget } from '@/components/EditableTextWidget';
+import { CalendarWidget } from '@/components/CalendarWidget';
+import { DailyEventsWidget } from '@/components/DailyEventsWidget';
 import { EditableSpan } from '@/components/EditableSpan';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 import { loadCustomPages } from '@/lib/utils/storage';
@@ -74,7 +76,22 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
   const router = useRouter();
   const { pageId } = use(params);
   const [pageName, setPageName] = useState('');
-  const { layout, textWidgets, staticContent, hiddenWidgets, moveWidget, resizeWidget, addTextWidget, updateTextWidget, updateStaticContent, deleteWidget, resetLayout, isLoaded } = useGridLayout(pageId);
+  const { 
+    layout, 
+    textWidgets, 
+    staticContent, 
+    hiddenWidgets, 
+    moveWidget, 
+    resizeWidget, 
+    addTextWidget,
+    addCalendarWidget,
+    addDailyEventsWidget, 
+    updateTextWidget, 
+    updateStaticContent, 
+    deleteWidget, 
+    resetLayout, 
+    isLoaded 
+  } = useGridLayout(pageId);
 
   // Check if page exists
   useEffect(() => {
@@ -128,7 +145,29 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
         />
       ),
     },
-  ], [currentGreeting, welcomeMessage, shortcutHint, updateStaticContent]);
+    {
+      id: 'calendar',
+      minColSpan: 4,
+      minRowSpan: 4,
+      content: (
+        <CalendarWidget
+          id="calendar"
+          onDelete={deleteWidget}
+        />
+      ),
+    },
+    {
+      id: 'dailyEvents',
+      minColSpan: 2,
+      minRowSpan: 3,
+      content: (
+        <DailyEventsWidget
+          id="dailyEvents"
+          onDelete={deleteWidget}
+        />
+      ),
+    },
+  ], [currentGreeting, welcomeMessage, shortcutHint, updateStaticContent, deleteWidget]);
 
   const allWidgets = useMemo(() => {
     // Filter out hidden static widgets
@@ -141,7 +180,12 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
   }
 
   return (
-    <PageWithCommandMenu onAddTextWidget={addTextWidget}>
+    <PageWithCommandMenu 
+      pageTitle={pageName}
+      onAddTextBox={addTextWidget}
+      onAddCalendar={addCalendarWidget}
+      onAddDailyEvents={addDailyEventsWidget}
+    >
       <DashboardGrid
         widgets={allWidgets}
         layout={layout}
