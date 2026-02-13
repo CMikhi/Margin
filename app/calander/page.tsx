@@ -11,7 +11,6 @@ export default function CalendarPage() {
   const {
     layout,
     textWidgets,
-    staticContent,
     hiddenWidgets,
     moveWidget,
     resizeWidget,
@@ -19,7 +18,6 @@ export default function CalendarPage() {
     addCalendarWidget,
     addDailyEventsWidget,
     updateTextWidget,
-    updateStaticContent,
     deleteWidget,
     resetLayout,
     isLoaded,
@@ -64,7 +62,7 @@ export default function CalendarPage() {
         />
       ),
     })),
-  ].filter(Boolean);
+  ].filter((widget) => widget !== false);
 
   return (
     <PageWithCommandMenu
