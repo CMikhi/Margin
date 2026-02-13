@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 interface ImageWidgetProps {
@@ -21,6 +21,7 @@ const fadeIn = {
 
 export function ImageWidget({ id, imageSrc, onImageChange, onDelete }: ImageWidgetProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageClick = () => {
@@ -43,13 +44,26 @@ export function ImageWidget({ id, imageSrc, onImageChange, onDelete }: ImageWidg
       return
     }
 
+    // Create a fast local preview URL to avoid flicker
+    const objectUrl = URL.createObjectURL(file)
+    setPreviewUrl(objectUrl)
     setIsLoading(true)
 
+    // Also persist as base64 for storage
     try {
       const reader = new FileReader()
       reader.onload = (event) => {
         const base64 = event.target?.result as string
         onImageChange(id, base64)
+        setIsLoading(false)
+        // Revoke the object URL once we have a persistent src
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl)
+          setPreviewUrl(null)
+        }
+      }
+      reader.onerror = () => {
+        console.error('Error reading image file')
         setIsLoading(false)
       }
       reader.readAsDataURL(file)
@@ -58,6 +72,13 @@ export function ImageWidget({ id, imageSrc, onImageChange, onDelete }: ImageWidg
       setIsLoading(false)
     }
   }
+
+  // Cleanup any lingering preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
 
   const isEmpty = !imageSrc
 
@@ -113,21 +134,40 @@ export function ImageWidget({ id, imageSrc, onImageChange, onDelete }: ImageWidg
             </div>
           </div>
         ) : (
-          <div className="w-full h-full relative group">
+          <div className="w-full h-full relative group" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <img
-              src={imageSrc}
+              src={previewUrl || imageSrc}
               alt="Uploaded image"
               className="w-full h-full object-cover rounded-lg"
               style={{ objectFit: 'cover' }}
+              onLoad={() => setIsLoading(false)}
+              onError={() => {
+                // If the base64 fails to render, fall back to preview URL
+                if (!previewUrl && imageSrc) {
+                  try {
+                    // Attempt to create a blob URL from base64
+                    const matches = imageSrc.match(/^data:(.*?);base64,(.*)$/)
+                    if (matches) {
+                      const mime = matches[1]
+                      const b64 = matches[2]
+                      const byteChars = atob(b64)
+                      const byteNums = new Array(byteChars.length)
+                      for (let i = 0; i < byteChars.length; i++) {
+                        byteNums[i] = byteChars.charCodeAt(i)
+                      }
+                      const byteArray = new Uint8Array(byteNums)
+                      const blob = new Blob([byteArray], { type: mime })
+                      const url = URL.createObjectURL(blob)
+                      setPreviewUrl(url)
+                    }
+                  } catch (e) {
+                    console.error('Failed to create preview fallback URL:', e)
+                  }
+                }
+                setIsLoading(false)
+              }}
             />
-            {/* Overlay on hover */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <svg className="w-8 h-8" fill="white" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-            </div>
+            {/* Overlay removed to avoid potential compositing issues */}
           </div>
         )}
       </div>
