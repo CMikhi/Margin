@@ -62,27 +62,6 @@ function QuickLinksWidget({ title, onTitleChange }: { title: string; onTitleChan
       </h2>
 
       <Link
-        href="/todo"
-        className="group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-120"
-        style={{ color: 'var(--text-primary)' }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-      >
-        <span
-          className="w-6 h-6 rounded flex items-center justify-center text-sm"
-
-        >
-          ✓
-        </span>
-        <div>
-          <span className="text-sm font-medium">Todo Board</span>
-          <span className="block text-xs" style={{ color: 'var(--text-muted)' }}>
-            Manage your weekly tasks
-          </span>
-        </div>
-      </Link>
-
-      <Link
         href="/calander"
         className="group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-120"
         style={{ color: 'var(--text-primary)' }}
