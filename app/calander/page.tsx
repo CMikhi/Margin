@@ -5,19 +5,23 @@ import { DashboardGrid } from '@/components/DashboardGrid';
 import { CalendarWidget } from '@/components/CalendarWidget';
 import { DailyEventsWidget } from '@/components/DailyEventsWidget';
 import { EditableTextWidget } from '@/components/EditableTextWidget';
+import { ImageWidget } from '@/components/ImageWidget';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 
 export default function CalendarPage() {
   const {
     layout,
     textWidgets,
+    imageWidgets,
     hiddenWidgets,
     moveWidget,
     resizeWidget,
     addTextWidget,
+    addImageWidget,
     addCalendarWidget,
     addDailyEventsWidget,
     updateTextWidget,
+    updateImageWidget,
     deleteWidget,
     resetLayout,
     isLoaded,
@@ -62,12 +66,27 @@ export default function CalendarPage() {
         />
       ),
     })),
+    // Image widgets
+    ...Object.entries(imageWidgets).map(([id, imageSrc]) => ({
+      id,
+      minColSpan: 2,
+      minRowSpan: 2,
+      content: (
+        <ImageWidget
+          id={id}
+          imageSrc={imageSrc}
+          onImageChange={updateImageWidget}
+          onDelete={deleteWidget}
+        />
+      ),
+    })),
   ].filter((widget) => widget !== false);
 
   return (
     <PageWithCommandMenu
       pageTitle="📅 Calendar"
       onAddTextBox={addTextWidget}
+      onAddImage={addImageWidget}
       onAddCalendar={addCalendarWidget}
       onAddDailyEvents={addDailyEventsWidget}
     >
