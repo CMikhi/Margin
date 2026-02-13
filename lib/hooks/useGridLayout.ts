@@ -20,6 +20,10 @@ export interface TextWidgetsMap {
   [widgetId: string]: string // widgetId -> text content
 }
 
+export interface ImageWidgetsMap {
+  [widgetId: string]: string // widgetId -> image src (base64)
+}
+
 const DEFAULT_LAYOUT: WidgetLayout = {
   greeting: { col: 0, row: 0, colSpan: 5, rowSpan: 2 },
   quickLinks: { col: 0, row: 2, colSpan: 3, rowSpan: 3 },
@@ -66,6 +70,25 @@ function saveTextWidgets(textWidgets: TextWidgetsMap, pageId?: string): void {
   if (typeof window === 'undefined') return
   try {
     localStorage.setItem(getStorageKey('margin-text-widgets', pageId), JSON.stringify(textWidgets))
+  } catch {
+    // ignore
+  }
+}
+
+function loadImageWidgets(pageId?: string): ImageWidgetsMap | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const stored = localStorage.getItem(getStorageKey('margin-image-widgets', pageId))
+    return stored ? JSON.parse(stored) : null
+  } catch {
+    return null
+  }
+}
+
+function saveImageWidgets(imageWidgets: ImageWidgetsMap, pageId?: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(getStorageKey('margin-image-widgets', pageId), JSON.stringify(imageWidgets))
   } catch {
     // ignore
   }
@@ -147,6 +170,7 @@ function findEmptySpot(layout: WidgetLayout, colSpan: number, rowSpan: number): 
 export function useGridLayout(pageId?: string) {
   const [layout, setLayout] = useState<WidgetLayout>(DEFAULT_LAYOUT)
   const [textWidgets, setTextWidgets] = useState<TextWidgetsMap>({})
+  const [imageWidgets, setImageWidgets] = useState<ImageWidgetsMap>({})
   const [staticContent, setStaticContent] = useState<TextWidgetsMap>({})
   const [hiddenWidgets, setHiddenWidgets] = useState<Set<string>>(new Set())
   const [isLoaded, setIsLoaded] = useState(false)
@@ -155,6 +179,7 @@ export function useGridLayout(pageId?: string) {
   useEffect(() => {
     const storedLayout = loadLayout(pageId)
     const storedText = loadTextWidgets(pageId)
+    const storedImages = loadImageWidgets(pageId)
     const storedStatic = loadStaticContent(pageId)
 
     if (storedLayout) {
@@ -164,6 +189,9 @@ export function useGridLayout(pageId?: string) {
     }
     if (storedText) {
       setTextWidgets(storedText)
+    }
+    if (storedImages) {
+      setImageWidgets(storedImages)
     }
     if (storedStatic) {
       setStaticContent(storedStatic)
@@ -187,9 +215,10 @@ export function useGridLayout(pageId?: string) {
     if (isLoaded) {
       saveLayout(layout, pageId)
       saveTextWidgets(textWidgets, pageId)
+      saveImageWidgets(imageWidgets, pageId)
       saveStaticContent(staticContent, pageId)
     }
-  }, [layout, textWidgets, staticContent, isLoaded, pageId])
+  }, [layout, textWidgets, imageWidgets, staticContent, isLoaded, pageId])
 
   const moveWidget = useCallback(
     (widgetId: string, newCol: number, newRow: number) => {
@@ -290,12 +319,31 @@ export function useGridLayout(pageId?: string) {
     return widgetId
   }, [layout, pageId])
 
+  const addImageWidget = useCallback(() => {
+    const widgetId = `image-${Date.now()}`
+    const spot = findEmptySpot(layout, 2, 2)
+
+    if (!spot) {
+      // Grid is full, place at 0,0 anyway (will overlap)
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2 } }))
+    } else {
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2 } }))
+    }
+
+    setImageWidgets((prev) => ({ ...prev, [widgetId]: '' }))
+    return widgetId
+  }, [layout])
+
   const updateTextWidget = useCallback((widgetId: string, text: string) => {
     setTextWidgets((prev) => ({ ...prev, [widgetId]: text }))
   }, [])
 
   const updateStaticContent = useCallback((widgetId: string, content: string) => {
     setStaticContent((prev) => ({ ...prev, [widgetId]: content }))
+  }, [])
+
+  const updateImageWidget = useCallback((widgetId: string, imageSrc: string) => {
+    setImageWidgets((prev) => ({ ...prev, [widgetId]: imageSrc }))
   }, [])
 
   const deleteWidget = useCallback((widgetId: string) => {
@@ -311,6 +359,18 @@ export function useGridLayout(pageId?: string) {
         delete newText[widgetId]
         return newText
       })
+    } else if (widgetId.startsWith('image-')) {
+      // If it's an image widget, remove from layout and imageWidgets
+      setLayout((prev) => {
+        const newLayout = { ...prev }
+        delete newLayout[widgetId]
+        return newLayout
+      })
+      setImageWidgets((prev) => {
+        const newImages = { ...prev }
+        delete newImages[widgetId]
+        return newImages
+      })
     } else {
       // For static widgets, add to hidden set
       setHiddenWidgets((prev) => {
@@ -325,6 +385,7 @@ export function useGridLayout(pageId?: string) {
   const resetLayout = useCallback(() => {
     setLayout(DEFAULT_LAYOUT)
     setTextWidgets({})
+    setImageWidgets({})
     setHiddenWidgets(new Set())
     localStorage.removeItem(getStorageKey('margin-hidden-widgets', pageId))
   }, [pageId])
@@ -332,14 +393,17 @@ export function useGridLayout(pageId?: string) {
   return { 
     layout, 
     textWidgets, 
+    imageWidgets, 
     staticContent, 
     hiddenWidgets, 
     moveWidget, 
     resizeWidget, 
     addTextWidget, 
+    addImageWidget, 
     addCalendarWidget,
     addDailyEventsWidget,
     updateTextWidget, 
+    updateImageWidget, 
     updateStaticContent, 
     deleteWidget, 
     resetLayout, 

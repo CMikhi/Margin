@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { DashboardGrid } from '@/components/DashboardGrid';
 import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
 import { EditableTextWidget } from '@/components/EditableTextWidget';
+import { ImageWidget } from '@/components/ImageWidget';
 import { CalendarWidget } from '@/components/CalendarWidget';
 import { DailyEventsWidget } from '@/components/DailyEventsWidget';
 import { EditableSpan } from '@/components/EditableSpan';
@@ -59,27 +60,6 @@ function QuickLinksWidget({ title, onTitleChange }: { title: string; onTitleChan
           style={{ color: 'var(--text-muted)' }}
         />
       </h2>
-
-      <Link
-        href="/todo"
-        className="group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-120"
-        style={{ color: 'var(--text-primary)' }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-      >
-        <span
-          className="w-6 h-6 rounded flex items-center justify-center text-sm"
-
-        >
-          ✓
-        </span>
-        <div>
-          <span className="text-sm font-medium">Todo Board</span>
-          <span className="block text-xs" style={{ color: 'var(--text-muted)' }}>
-            Manage your weekly tasks
-          </span>
-        </div>
-      </Link>
 
       <Link
         href="/calander"
@@ -137,14 +117,17 @@ export default function Home() {
   const { 
     layout, 
     textWidgets, 
+    imageWidgets, 
     staticContent, 
     hiddenWidgets, 
     moveWidget, 
     resizeWidget, 
     addTextWidget,
+    addImageWidget,
     addCalendarWidget,
     addDailyEventsWidget,
     updateTextWidget, 
+    updateImageWidget, 
     updateStaticContent, 
     deleteWidget, 
     resetLayout, 
@@ -167,9 +150,9 @@ export default function Home() {
   const quicklinksTitle = staticContent['quicklinks-title'] || DEFAULT_STATIC_CONTENT['quicklinks-title'];
   const shortcutHint = staticContent['shortcut-hint'] || DEFAULT_STATIC_CONTENT['shortcut-hint'];
 
-  // Build dynamic widgets from textWidgets
+  // Build dynamic widgets from textWidgets and imageWidgets
   const dynamicWidgets = useMemo(() => {
-    return Object.entries(textWidgets).map(([widgetId, text]) => ({
+    const textWidgetsList = Object.entries(textWidgets).map(([widgetId, text]) => ({
       id: widgetId,
       content: (
         <EditableTextWidget
@@ -180,7 +163,21 @@ export default function Home() {
         />
       ),
     }));
-  }, [textWidgets, updateTextWidget, deleteWidget]);
+    
+    const imageWidgetsList = Object.entries(imageWidgets).map(([widgetId, imageSrc]) => ({
+      id: widgetId,
+      content: (
+        <ImageWidget
+          id={widgetId}
+          imageSrc={imageSrc}
+          onImageChange={updateImageWidget}
+          onDelete={deleteWidget}
+        />
+      ),
+    }));
+    
+    return [...textWidgetsList, ...imageWidgetsList];
+  }, [textWidgets, imageWidgets, updateTextWidget, updateImageWidget, deleteWidget]);
 
   const STATIC_WIDGETS = useMemo(() => [
     {
@@ -246,6 +243,7 @@ export default function Home() {
     <PageWithCommandMenu 
       pageTitle="🏠 Home"
       onAddTextBox={addTextWidget}
+      onAddImage={addImageWidget}
       onAddCalendar={addCalendarWidget}
       onAddDailyEvents={addDailyEventsWidget}
     >
