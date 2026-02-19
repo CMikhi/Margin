@@ -11,6 +11,7 @@ import { CalendarWidget } from '@/components/CalendarWidget';
 import { DailyEventsWidget } from '@/components/DailyEventsWidget';
 import { EditableSpan } from '@/components/EditableSpan';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
+import Tiptap from '@/components/TipTap';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 6 },
@@ -240,7 +241,7 @@ export default function Home() {
   }, [STATIC_WIDGETS, dynamicWidgets, hiddenWidgets]);
 
   return (
-    <PageWithCommandMenu 
+    <><PageWithCommandMenu
       pageTitle="🏠 Home"
       onAddTextBox={addTextWidget}
       onAddImage={addImageWidget}
@@ -254,9 +255,8 @@ export default function Home() {
         resizeWidget={resizeWidget}
         deleteWidget={deleteWidget}
         resetLayout={resetLayout}
-        isLoaded={isLoaded}
-      />
-    </PageWithCommandMenu>
+        isLoaded={isLoaded} />
+    </PageWithCommandMenu><Tiptap /></>
   );
 }
 

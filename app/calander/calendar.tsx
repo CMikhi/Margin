@@ -898,6 +898,7 @@ export default function CalendarComponent() {
                     >
                       Cancel
                     </button>
+                    
                     <button
                       type="submit"
                       disabled={!eventTitle.trim() || (eventType === 'multi' && (!multiStartDate || !multiEndDate))}
