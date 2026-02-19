@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { RichTextEditor } from './RichTextEditor'
+import { TipTapEditor } from './TipTapEditor'
 
 interface EditableTextWidgetProps {
   id: string
@@ -45,21 +45,22 @@ export function EditableTextWidget({ id, text, onTextChange, onDelete }: Editabl
     setLocalText(html)
   }
 
-  const isEmpty = !localText || localText === 'Click to edit...' || localText.trim() === ''
+  const isEmpty = !localText || localText === 'Click to edit...' || localText.trim() === '' || localText === '<p></p>'
 
   return (
     <motion.div variants={fadeIn} initial="hidden" animate="visible" className="h-full">
       {isEditing ? (
-        <RichTextEditor
+        <TipTapEditor
           content={isEmpty ? '' : localText}
           onChange={handleChange}
           onBlur={handleBlur}
-          placeholder="Start typing..."
+          placeholder="Type '/' for commands..."
+          autoFocus={true}
         />
       ) : (
         <div
           onClick={handleClick}
-          className="cursor-text w-full h-full text-sm leading-relaxed rich-text-content"
+          className="cursor-text w-full h-full text-sm leading-relaxed tiptap-editor"
           style={{
             color: isEmpty ? 'var(--text-muted)' : 'var(--text-primary)',
           }}

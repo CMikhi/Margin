@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { RichTextEditor } from './RichTextEditor'
+import { TipTapEditor } from './TipTapEditor'
 
 interface EditableSpanProps {
   id: string
@@ -36,11 +36,12 @@ export function EditableSpan({ id, content, onContentChange, className = '', sty
     <>
       {isEditing ? (
         <div className="w-full min-h-8">
-          <RichTextEditor
+          <TipTapEditor
             content={localContent}
             onChange={handleChange}
             onBlur={handleBlur}
             placeholder="Click to edit..."
+            autoFocus={true}
           />
         </div>
       ) : (
@@ -49,7 +50,7 @@ export function EditableSpan({ id, content, onContentChange, className = '', sty
           className={`cursor-text transition-colors hover:opacity-70 ${className}`}
           style={style}
         >
-          {content ? <span dangerouslySetInnerHTML={{ __html: content }} /> : 'Click to edit...'}
+          {content ? <span className="tiptap-editor" dangerouslySetInnerHTML={{ __html: content }} /> : 'Click to edit...'}
         </span>
       )}
     </>
