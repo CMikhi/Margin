@@ -229,7 +229,7 @@ export function TipTapEditor({
       attributes: {
         class: `tiptap-editor outline-none min-h-[40px] ${className}`,
       },
-      handleKeyDown: (view, event) => {
+      handleKeyDown: (view: any, event: KeyboardEvent) => {
         // Handle Tab key for indentation (4 spaces)
         if (event.key === 'Tab') {
           event.preventDefault()
@@ -356,10 +356,10 @@ export function TipTapEditor({
         return false
       },
     },
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor }: any) => {
       onChange(editor.getHTML())
     },
-    onSelectionUpdate: ({ editor }) => {
+    onSelectionUpdate: ({ editor }: any) => {
       const { from, to } = editor.state.selection
       const hasSelection = from !== to
       
