@@ -477,6 +477,7 @@ export function TipTapEditor({
       {/* Fixed Toolbar at Top */}
       <div
         className="fixed-toolbar flex items-center gap-0.5 px-2 py-1.5 border-b flex-wrap"
+        onMouseDown={(e) => e.preventDefault()}
         style={{
           backgroundColor: 'var(--bg-secondary)',
           borderColor: 'var(--border-default)',
@@ -485,6 +486,7 @@ export function TipTapEditor({
         {/* Undo/Redo */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
           className="p-1.5 rounded transition-colors disabled:opacity-30"
@@ -497,6 +499,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
           className="p-1.5 rounded transition-colors disabled:opacity-30"
@@ -517,6 +520,7 @@ export function TipTapEditor({
             editor.isActive('heading', { level: 2 }) ? 'h2' :
             editor.isActive('heading', { level: 3 }) ? 'h3' : 'p'
           }
+          onMouseDown={(e) => e.stopPropagation()}
           onChange={(e) => {
             const val = e.target.value
             if (val === 'p') editor.chain().focus().setParagraph().run()
@@ -539,6 +543,7 @@ export function TipTapEditor({
 
         {/* Font Family Dropdown */}
         <select
+          onMouseDown={(e) => e.stopPropagation()}
           onChange={(e) => {
             if (e.target.value) {
               editor.chain().focus().setFontFamily(e.target.value).run()
@@ -562,6 +567,7 @@ export function TipTapEditor({
         {/* Text Formatting */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('bold') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -573,6 +579,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('italic') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -584,6 +591,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('underline') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -595,6 +603,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleStrike().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('strike') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -610,6 +619,7 @@ export function TipTapEditor({
         {/* Lists */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('bulletList') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -621,6 +631,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('orderedList') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -632,6 +643,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleTaskList().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('taskList') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -647,6 +659,7 @@ export function TipTapEditor({
         {/* Quote & Code */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('blockquote') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -658,6 +671,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleCode().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('code') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -669,6 +683,7 @@ export function TipTapEditor({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           className={`p-1.5 rounded transition-colors ${editor.isActive('codeBlock') ? 'bg-[var(--bg-active)]' : ''}`}
           style={{ color: 'var(--text-primary)' }}
@@ -685,6 +700,7 @@ export function TipTapEditor({
         <div className="relative">
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setShowHighlightPicker(!showHighlightPicker)}
             className={`p-1.5 rounded transition-colors ${editor.isActive('highlight') ? 'bg-[var(--bg-active)]' : ''}`}
             style={{ color: 'var(--text-primary)' }}
@@ -697,6 +713,7 @@ export function TipTapEditor({
           {showHighlightPicker && (
             <div
               className="absolute top-full left-0 mt-1 p-2 rounded-lg z-50 grid grid-cols-3 gap-1"
+              onMouseDown={(e) => e.preventDefault()}
               style={{
                 backgroundColor: 'var(--bg-primary)',
                 border: '1px solid var(--border-default)',
@@ -735,6 +752,7 @@ export function TipTapEditor({
         {/* Divider */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
           className="p-1.5 rounded transition-colors"
           style={{ color: 'var(--text-primary)' }}
@@ -748,6 +766,7 @@ export function TipTapEditor({
         {/* Link */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             const previousUrl = editor.getAttributes('link').href
             setLinkUrl(previousUrl || '')
@@ -765,6 +784,7 @@ export function TipTapEditor({
         {/* Clear Formatting */}
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
           className="p-1.5 rounded transition-colors"
           style={{ color: 'var(--text-primary)' }}
@@ -781,6 +801,7 @@ export function TipTapEditor({
         <div
           ref={bubbleMenuRef}
           className="bubble-menu fixed z-50"
+          onMouseDown={(e) => e.preventDefault()}
           style={{
             left: bubbleMenuPosition.x,
             top: bubbleMenuPosition.y,
@@ -798,6 +819,7 @@ export function TipTapEditor({
           {/* Bold */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={`p-1.5 rounded transition-colors ${editor.isActive('bold') ? 'bg-[var(--bg-active)]' : ''}`}
             style={{ color: 'var(--text-primary)' }}
@@ -811,6 +833,7 @@ export function TipTapEditor({
           {/* Italic */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={`p-1.5 rounded transition-colors ${editor.isActive('italic') ? 'bg-[var(--bg-active)]' : ''}`}
             style={{ color: 'var(--text-primary)' }}
@@ -824,6 +847,7 @@ export function TipTapEditor({
           {/* Underline */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleUnderline().run()}
             className={`p-1.5 rounded transition-colors ${editor.isActive('underline') ? 'bg-[var(--bg-active)]' : ''}`}
             style={{ color: 'var(--text-primary)' }}
@@ -837,6 +861,7 @@ export function TipTapEditor({
           {/* Strikethrough */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleStrike().run()}
             className={`p-1.5 rounded transition-colors ${editor.isActive('strike') ? 'bg-[var(--bg-active)]' : ''}`}
             style={{ color: 'var(--text-primary)' }}
@@ -852,6 +877,7 @@ export function TipTapEditor({
           {/* Inline Code */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleCode().run()}
             className={`p-1.5 rounded transition-colors ${editor.isActive('code') ? 'bg-[var(--bg-active)]' : ''}`}
             style={{ color: 'var(--text-primary)' }}
@@ -866,6 +892,7 @@ export function TipTapEditor({
           <div className="relative">
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setShowHighlightPicker(!showHighlightPicker)}
               className={`p-1.5 rounded transition-colors ${editor.isActive('highlight') ? 'bg-[var(--bg-active)]' : ''}`}
               style={{ color: 'var(--text-primary)' }}
@@ -878,6 +905,7 @@ export function TipTapEditor({
             {showHighlightPicker && (
               <div
                 className="absolute top-full left-0 mt-1 p-2 rounded-lg z-50 grid grid-cols-3 gap-1"
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   backgroundColor: 'var(--bg-primary)',
                   border: '1px solid var(--border-default)',
@@ -918,6 +946,7 @@ export function TipTapEditor({
           {/* Link */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               const previousUrl = editor.getAttributes('link').href
               setLinkUrl(previousUrl || '')
@@ -936,6 +965,7 @@ export function TipTapEditor({
           <div className="relative">
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setShowFontPicker(!showFontPicker)}
               className="p-1.5 rounded transition-colors hover:bg-[var(--bg-hover)]"
               style={{ color: 'var(--text-primary)' }}
@@ -948,6 +978,7 @@ export function TipTapEditor({
             {showFontPicker && (
               <div
                 className="absolute top-full right-0 mt-1 p-1 rounded-lg z-50 min-w-[140px]"
+                onMouseDown={(e) => e.preventDefault()}
                 style={{
                   backgroundColor: 'var(--bg-primary)',
                   border: '1px solid var(--border-default)',
@@ -977,6 +1008,7 @@ export function TipTapEditor({
           {/* Clear Formatting */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={clearFormatting}
             className="p-1.5 rounded transition-colors hover:bg-[var(--bg-hover)]"
             style={{ color: 'var(--text-primary)' }}

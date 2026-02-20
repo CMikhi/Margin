@@ -490,6 +490,24 @@ body {
   }
 }
 
+/* Fixed Toolbar */
+.fixed-toolbar {
+  min-height: 40px;
+}
+
+.fixed-toolbar button:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+}
+
+.fixed-toolbar select {
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.fixed-toolbar select:hover {
+  background-color: var(--bg-hover);
+}
+
 /* Syntax highlighting for code blocks */
 .tiptap-editor pre .hljs-comment,
 .tiptap-editor pre .hljs-quote {
