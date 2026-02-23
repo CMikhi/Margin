@@ -380,10 +380,8 @@ export default function CalendarComponent() {
       style={{ backgroundColor: 'var(--bg-primary)' }}
     >
       {/* Header - Notion page style */}
-      <div className="px-10 pt-10 pb-4 max-w-225">
-        <div className="mb-2">
+      <div className="px-10 pb-4 max-w-225">
 
-        </div>
         <div className="flex items-center gap-4 mb-1">
           <h1
             className="text-[32px] font-bold leading-tight"

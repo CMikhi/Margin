@@ -24,14 +24,49 @@ export interface ImageWidgetsMap {
   [widgetId: string]: string // widgetId -> image src (base64)
 }
 
-const DEFAULT_LAYOUT: WidgetLayout = {
-  greeting: { col: 0, row: 0, colSpan: 5, rowSpan: 2 },
-  quickLinks: { col: 0, row: 2, colSpan: 3, rowSpan: 3 },
-  shortcutHint: { col: 0, row: 5, colSpan: 4, rowSpan: 1 },
-}
-
 export const GRID_COLS = 8
 export const GRID_ROWS = 8
+
+// ─── Page-specific defaults ────────────────────────────────
+const HOME_DEFAULT_WELCOME_HTML = `<h1>Margin</h1><h2>Welcome to Margin!</h2><p>It is meant to be a one-in-all type of app that allows users to keep notes and ideas all in one spot in ways to be both functional and customizable. It is meant to act similar to Notion but to be more user friendly. Its currently still in the works and I have hopes that it will become a cool ass project.</p><hr><h2>Defining Features</h2><p>Outside of the plain ability of just adding text, there are a few traits that make this app stand out. Some of this being:</p><ul><li><p>Movable components</p></li><li><p>Resizable components</p></li></ul><p>This is what I've decided allowed for most customization in terms of looks outside of theme. Every aspect on the page is referred to as a "widget". As the user, if you drag the 6-dots at the top of the select widget, it will show you the grid that the page is built upon. If you want to expand the size of the widget, you can hold down the corner of your choice and drag the widget to the dimensions you are happy with.</p><hr><h2>Adding Widgets</h2><p>As the user, you can add widgets by click "CMD+k" for Mac and "CTR+k" for Windows to open the tool and navigation menu. This menu allows you to quickly jump between different pages by searching it up, or to add new widget of your choice.</p><p>The current widgets that Margin has includes:</p><ul><li><p>Text boxes</p></li><li><p>Images</p></li><li><p>Calendar</p></li><li><p>Daily events (Add-on to the calendar)</p></li></ul><p>The types of widgets are still expanding and any feedback is greatly appreciated!</p>`
+
+function getDefaultLayout(pageId?: string): WidgetLayout {
+  if (pageId === 'calendar-page') {
+    return {
+      calendar: { col: 0, row: 0, colSpan: 8, rowSpan: 8 },
+    }
+  }
+  // Home page
+  return {
+    'image-default-cat': { col: 0, row: 0, colSpan: 1, rowSpan: 2 },
+    quickLinks: { col: 0, row: 2, colSpan: 1, rowSpan: 2 },
+    'text-default-welcome': { col: 1, row: 0, colSpan: 6, rowSpan: 8 },
+    'image-default-bookmark': { col: 7, row: 0, colSpan: 1, rowSpan: 8 },
+  }
+}
+
+function getDefaultTextWidgets(pageId?: string): TextWidgetsMap {
+  if (pageId === 'calendar-page') return {}
+  return {
+    'text-default-welcome': HOME_DEFAULT_WELCOME_HTML,
+  }
+}
+
+function getDefaultImageWidgets(pageId?: string): ImageWidgetsMap {
+  if (pageId === 'calendar-page') return {}
+  return {
+    'image-default-cat': '/default-cat.jpg',
+    'image-default-bookmark': '/default-bears.jpg',
+  }
+}
+
+function getDefaultHiddenWidgets(pageId?: string): string[] {
+  if (pageId === 'calendar-page') {
+    return ['dailyEvents']
+  }
+  // Home page: hide greeting, shortcutHint, calendar, dailyEvents
+  return ['greeting', 'shortcutHint', 'calendar', 'dailyEvents']
+}
 
 function getStorageKey(baseKey: string, pageId?: string): string {
   return pageId ? `${baseKey}-${pageId}` : baseKey
@@ -168,43 +203,51 @@ function findEmptySpot(layout: WidgetLayout, colSpan: number, rowSpan: number): 
 }
 
 export function useGridLayout(pageId?: string) {
-  const [layout, setLayout] = useState<WidgetLayout>(DEFAULT_LAYOUT)
-  const [textWidgets, setTextWidgets] = useState<TextWidgetsMap>({})
-  const [imageWidgets, setImageWidgets] = useState<ImageWidgetsMap>({})
+  const [layout, setLayout] = useState<WidgetLayout>(() => getDefaultLayout(pageId))
+  const [textWidgets, setTextWidgets] = useState<TextWidgetsMap>(() => getDefaultTextWidgets(pageId))
+  const [imageWidgets, setImageWidgets] = useState<ImageWidgetsMap>(() => getDefaultImageWidgets(pageId))
   const [staticContent, setStaticContent] = useState<TextWidgetsMap>({})
-  const [hiddenWidgets, setHiddenWidgets] = useState<Set<string>>(new Set())
+  const [hiddenWidgets, setHiddenWidgets] = useState<Set<string>>(() => new Set(getDefaultHiddenWidgets(pageId)))
   const [isLoaded, setIsLoaded] = useState(false)
 
   // Load from localStorage on mount
   useEffect(() => {
+    const defaults = getDefaultLayout(pageId)
     const storedLayout = loadLayout(pageId)
     const storedText = loadTextWidgets(pageId)
     const storedImages = loadImageWidgets(pageId)
     const storedStatic = loadStaticContent(pageId)
 
     if (storedLayout) {
-      setLayout({ ...DEFAULT_LAYOUT, ...storedLayout })
+      setLayout(storedLayout)
     } else {
-      setLayout(DEFAULT_LAYOUT)
+      setLayout(defaults)
     }
     if (storedText) {
       setTextWidgets(storedText)
+    } else {
+      setTextWidgets(getDefaultTextWidgets(pageId))
     }
     if (storedImages) {
       setImageWidgets(storedImages)
+    } else {
+      setImageWidgets(getDefaultImageWidgets(pageId))
     }
     if (storedStatic) {
       setStaticContent(storedStatic)
     }
     
-    // Load hidden widgets
+    // Load hidden widgets or use defaults
     const hiddenData = localStorage.getItem(getStorageKey('margin-hidden-widgets', pageId))
     if (hiddenData) {
       try {
         setHiddenWidgets(new Set(JSON.parse(hiddenData)))
       } catch (e) {
         console.error('Failed to load hidden widgets', e)
+        setHiddenWidgets(new Set(getDefaultHiddenWidgets(pageId)))
       }
+    } else {
+      setHiddenWidgets(new Set(getDefaultHiddenWidgets(pageId)))
     }
     
     setIsLoaded(true)
@@ -383,11 +426,14 @@ export function useGridLayout(pageId?: string) {
   }, [pageId])
 
   const resetLayout = useCallback(() => {
-    setLayout(DEFAULT_LAYOUT)
-    setTextWidgets({})
-    setImageWidgets({})
-    setHiddenWidgets(new Set())
-    localStorage.removeItem(getStorageKey('margin-hidden-widgets', pageId))
+    const defaultHidden = getDefaultHiddenWidgets(pageId)
+    setLayout(getDefaultLayout(pageId))
+    setTextWidgets(getDefaultTextWidgets(pageId))
+    setImageWidgets(getDefaultImageWidgets(pageId))
+    setHiddenWidgets(new Set(defaultHidden))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(getStorageKey('margin-hidden-widgets', pageId), JSON.stringify(defaultHidden))
+    }
   }, [pageId])
 
   return { 
