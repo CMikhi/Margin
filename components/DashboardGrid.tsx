@@ -7,9 +7,7 @@ import { GRID_COLS, GRID_ROWS, type WidgetPosition } from '@/lib/hooks/useGridLa
 interface WidgetConfig {
   id: string
   content: ReactNode
-  /** Minimum column span */
   minColSpan?: number
-  /** Minimum row span */
   minRowSpan?: number
 }
 
