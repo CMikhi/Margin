@@ -499,7 +499,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('bold') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('bold') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Bold (⌘B)"
           >
@@ -513,7 +513,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('italic') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('italic') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Italic (⌘I)"
           >
@@ -527,7 +527,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleUnderline().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('underline') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('underline') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Underline (⌘U)"
           >
@@ -541,7 +541,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleStrike().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('strike') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('strike') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Strikethrough (⌘⇧X)"
           >
@@ -557,7 +557,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`p-1.5 rounded transition-colors text-xs font-bold ${editor.isActive('heading', { level: 1 }) ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors text-xs font-bold ${editor.isActive('heading', { level: 1 }) ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Heading 1"
           >
@@ -567,7 +567,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`p-1.5 rounded transition-colors text-xs font-bold ${editor.isActive('heading', { level: 2 }) ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors text-xs font-bold ${editor.isActive('heading', { level: 2 }) ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Heading 2"
           >
@@ -577,7 +577,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`p-1.5 rounded transition-colors text-xs font-bold ${editor.isActive('heading', { level: 3 }) ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors text-xs font-bold ${editor.isActive('heading', { level: 3 }) ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Heading 3"
           >
@@ -591,7 +591,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('bulletList') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('bulletList') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Bullet List"
           >
@@ -603,7 +603,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('orderedList') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('orderedList') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Numbered List"
           >
@@ -615,7 +615,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleTaskList().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('taskList') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('taskList') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Checklist"
           >
@@ -631,7 +631,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('blockquote') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('blockquote') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Quote"
           >
@@ -645,7 +645,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('codeBlock') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('codeBlock') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Code Block"
           >
@@ -659,7 +659,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
-            className="p-1.5 rounded transition-colors hover:bg-[var(--bg-hover)]"
+            className="p-1.5 rounded transition-colors hover:bg-(--bg-hover)"
             style={{ color: 'var(--text-primary)' }}
             title="Divider"
           >
@@ -675,7 +675,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor.chain().focus().toggleCode().run()}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('code') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('code') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Inline Code"
           >
@@ -690,7 +690,7 @@ export function TipTapEditor({
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setShowHighlightPicker(!showHighlightPicker)}
-              className={`p-1.5 rounded transition-colors ${editor.isActive('highlight') ? 'bg-[var(--bg-active)]' : ''}`}
+              className={`p-1.5 rounded transition-colors ${editor.isActive('highlight') ? 'bg-(--bg-active)' : ''}`}
               style={{ color: 'var(--text-primary)' }}
               title="Highlight"
             >
@@ -716,7 +716,7 @@ export function TipTapEditor({
                       editor.chain().focus().toggleHighlight({ color: h.color }).run()
                       setShowHighlightPicker(false)
                     }}
-                    className="w-6 h-6 rounded border border-transparent hover:border-[var(--border-hover)]"
+                    className="w-6 h-6 rounded border border-transparent hover:border-(--border-hover)"
                     style={{ backgroundColor: h.color }}
                     title={h.name}
                   />
@@ -727,7 +727,7 @@ export function TipTapEditor({
                     editor.chain().focus().unsetHighlight().run()
                     setShowHighlightPicker(false)
                   }}
-                  className="w-6 h-6 rounded border border-[var(--border-default)] flex items-center justify-center text-xs"
+                  className="w-6 h-6 rounded border border-(--border-default) flex items-center justify-center text-xs"
                   style={{ color: 'var(--text-muted)' }}
                   title="Remove highlight"
                 >
@@ -748,7 +748,7 @@ export function TipTapEditor({
               setLinkUrl(previousUrl || '')
               setShowLinkMenu(true)
             }}
-            className={`p-1.5 rounded transition-colors ${editor.isActive('link') ? 'bg-[var(--bg-active)]' : ''}`}
+            className={`p-1.5 rounded transition-colors ${editor.isActive('link') ? 'bg-(--bg-active)' : ''}`}
             style={{ color: 'var(--text-primary)' }}
             title="Link (⌘K)"
           >
@@ -763,7 +763,7 @@ export function TipTapEditor({
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setShowFontPicker(!showFontPicker)}
-              className="p-1.5 rounded transition-colors hover:bg-[var(--bg-hover)]"
+              className="p-1.5 rounded transition-colors hover:bg-(--bg-hover)"
               style={{ color: 'var(--text-primary)' }}
               title="Font Family"
             >
@@ -773,7 +773,7 @@ export function TipTapEditor({
             </button>
             {showFontPicker && (
               <div
-                className="absolute top-full right-0 mt-1 p-1 rounded-lg z-50 min-w-[140px]"
+                className="absolute top-full right-0 mt-1 p-1 rounded-lg z-50 min-w-35"
                 onMouseDown={(e) => e.preventDefault()}
                 style={{
                   backgroundColor: 'var(--bg-primary)',
@@ -789,7 +789,7 @@ export function TipTapEditor({
                       editor.chain().focus().setFontFamily(f.value).run()
                       setShowFontPicker(false)
                     }}
-                    className="w-full text-left px-3 py-1.5 rounded hover:bg-[var(--bg-hover)] text-sm"
+                    className="w-full text-left px-3 py-1.5 rounded hover:bg-(--bg-hover) text-sm"
                     style={{ fontFamily: f.value, color: 'var(--text-primary)' }}
                   >
                     {f.name}
@@ -806,7 +806,7 @@ export function TipTapEditor({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={clearFormatting}
-            className="p-1.5 rounded transition-colors hover:bg-[var(--bg-hover)]"
+            className="p-1.5 rounded transition-colors hover:bg-(--bg-hover)"
             style={{ color: 'var(--text-primary)' }}
             title="Clear formatting"
           >
@@ -825,7 +825,7 @@ export function TipTapEditor({
       {showSlashMenu && (
         <div
           ref={slashMenuRef}
-          className="fixed z-50 p-1 rounded-lg max-h-80 overflow-auto min-w-[240px]"
+          className="fixed z-50 p-1 rounded-lg max-h-80 overflow-auto min-w-60"
           style={{
             left: Math.min(slashMenuPosition.x, window.innerWidth - 260),
             top: Math.min(slashMenuPosition.y, window.innerHeight - 340),
@@ -856,7 +856,7 @@ export function TipTapEditor({
                   setShowSlashMenu(false)
                 }}
                 className={`w-full flex items-center gap-3 px-2 py-2 rounded text-left ${
-                  i === selectedSlashIndex ? 'bg-[var(--bg-hover)]' : ''
+                  i === selectedSlashIndex ? 'bg-(--bg-hover)' : ''
                 }`}
                 style={{ color: 'var(--text-primary)' }}
               >
@@ -882,7 +882,7 @@ export function TipTapEditor({
       {showPageSearch && (
         <div
           ref={pageSearchRef}
-          className="fixed z-50 p-1 rounded-lg max-h-80 overflow-auto min-w-[280px]"
+          className="fixed z-50 p-1 rounded-lg max-h-80 overflow-auto min-w-70"
           style={{
             left: Math.min(slashMenuPosition.x, window.innerWidth - 300),
             top: Math.min(slashMenuPosition.y, window.innerHeight - 340),
@@ -910,7 +910,7 @@ export function TipTapEditor({
                   setShowPageSearch(false)
                 }}
                 className={`w-full flex items-center gap-3 px-2 py-2 rounded text-left ${
-                  i === selectedPageIndex ? 'bg-[var(--bg-hover)]' : ''
+                  i === selectedPageIndex ? 'bg-(--bg-hover)' : ''
                 }`}
                 style={{ color: 'var(--text-primary)' }}
               >
@@ -931,7 +931,7 @@ export function TipTapEditor({
         >
           <div
             ref={linkMenuRef}
-            className="rounded-lg p-4 min-w-[400px]"
+            className="rounded-lg p-4 min-w-100"
             style={{
               backgroundColor: 'var(--bg-primary)',
               border: '1px solid var(--border-default)',
@@ -966,7 +966,7 @@ export function TipTapEditor({
                   setPageSearchQuery('')
                   setSelectedPageIndex(0)
                 }}
-                className="px-3 py-1.5 text-sm rounded hover:bg-[var(--bg-hover)]"
+                className="px-3 py-1.5 text-sm rounded hover:bg-(--bg-hover)"
                 style={{ color: 'var(--text-secondary)' }}
               >
                 Link to page
@@ -1004,7 +1004,7 @@ export function TipTapEditor({
                     editor.chain().focus().unsetLink().run()
                     setShowLinkMenu(false)
                   }}
-                  className="px-3 py-1.5 text-sm rounded hover:bg-[var(--bg-hover)]"
+                  className="px-3 py-1.5 text-sm rounded hover:bg-(--bg-hover)"
                   style={{ color: 'var(--accent-red)' }}
                 >
                   Remove link
@@ -1013,7 +1013,7 @@ export function TipTapEditor({
               <button
                 type="button"
                 onClick={() => setShowLinkMenu(false)}
-                className="px-3 py-1.5 text-sm rounded hover:bg-[var(--bg-hover)]"
+                className="px-3 py-1.5 text-sm rounded hover:bg-(--bg-hover)"
                 style={{ color: 'var(--text-secondary)' }}
               >
                 Cancel

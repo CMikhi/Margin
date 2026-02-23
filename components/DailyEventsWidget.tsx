@@ -191,7 +191,7 @@ export function DailyEventsWidget({ id, onDelete }: DailyEventsWidgetProps) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      className="w-2 h-2 rounded-full shrink-0"
                       style={{ backgroundColor: event.color }}
                     />
                     <h3 
