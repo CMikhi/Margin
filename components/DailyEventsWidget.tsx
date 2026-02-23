@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarEvent } from '@/lib/types';
 import { 
-  loadEvents, 
+  loadEvents,
   saveEvents, 
   formatDateKey, 
   getEventsForDay,
