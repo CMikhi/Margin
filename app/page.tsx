@@ -240,7 +240,7 @@ export default function Home() {
   }, [STATIC_WIDGETS, dynamicWidgets, hiddenWidgets]);
 
   return (
-    <PageWithCommandMenu 
+    <PageWithCommandMenu
       pageTitle="🏠 Home"
       onAddTextBox={addTextWidget}
       onAddImage={addImageWidget}
@@ -254,8 +254,7 @@ export default function Home() {
         resizeWidget={resizeWidget}
         deleteWidget={deleteWidget}
         resetLayout={resetLayout}
-        isLoaded={isLoaded}
-      />
+        isLoaded={isLoaded} />
     </PageWithCommandMenu>
   );
 }
