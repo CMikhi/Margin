@@ -110,7 +110,7 @@ const DEFAULT_STATIC_CONTENT = {
   'greeting-text': 'Good morning',
   'welcome-message': 'Welcome to Margin — your calm space for weekly focus.',
   'quicklinks-title': 'Jump to',
-  'shortcut-hint': 'Press <kbd style="background-color: var(--bg-hover); border: 1px solid var(--border-default); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: monospace;">⌘ K</kbd> to open the command menu',
+  'shortcut-hint': 'Press <kbd style="background-color: var(--bg-hover); border: 1px solid var(--border-default); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: monospace; margin-left: 2px; margin-right: 2px;">⌘ K</kbd> to open the command menu',
 };
 
 export default function Home() {

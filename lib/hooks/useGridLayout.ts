@@ -36,6 +36,11 @@ function getDefaultLayout(pageId?: string): WidgetLayout {
       calendar: { col: 0, row: 0, colSpan: 8, rowSpan: 8 },
     }
   }
+  if (pageId) {
+    return {
+      welcome: { col: 1, row: 1, colSpan: 6, rowSpan: 4 },
+    }
+  }
   // Home page
   return {
     'image-default-cat': { col: 0, row: 0, colSpan: 1, rowSpan: 2 },
@@ -46,14 +51,14 @@ function getDefaultLayout(pageId?: string): WidgetLayout {
 }
 
 function getDefaultTextWidgets(pageId?: string): TextWidgetsMap {
-  if (pageId === 'calendar-page') return {}
+  if (pageId) return {}
   return {
     'text-default-welcome': HOME_DEFAULT_WELCOME_HTML,
   }
 }
 
 function getDefaultImageWidgets(pageId?: string): ImageWidgetsMap {
-  if (pageId === 'calendar-page') return {}
+  if (pageId) return {}
   return {
     'image-default-cat': '/default-cat.jpg',
     'image-default-bookmark': '/default-bears.jpg',
@@ -63,6 +68,9 @@ function getDefaultImageWidgets(pageId?: string): ImageWidgetsMap {
 function getDefaultHiddenWidgets(pageId?: string): string[] {
   if (pageId === 'calendar-page') {
     return ['dailyEvents']
+  }
+  if (pageId) {
+    return ['calendar', 'dailyEvents']
   }
   // Home page: hide greeting, shortcutHint, calendar, dailyEvents
   return ['greeting', 'shortcutHint', 'calendar', 'dailyEvents']
