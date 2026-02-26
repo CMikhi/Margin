@@ -1,10 +1,14 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { CalendarEvent } from './entities/calendar-event.entity';
-import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
-import { User } from '../common/entities/user.entity';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between } from "typeorm";
+import { CalendarEvent } from "./entities/calendar-event.entity";
+import { CreateEventDto } from "./dto/create-event.dto";
+import { UpdateEventDto } from "./dto/update-event.dto";
+import { User } from "../common/entities/user.entity";
 
 @Injectable()
 export class CalendarService {
@@ -14,7 +18,7 @@ export class CalendarService {
   ) {}
 
   private validateDateOrder(start: Date, end: Date) {
-    if (end < start) throw new BadRequestException('endAt must be >= startAt');
+    if (end < start) throw new BadRequestException("endAt must be >= startAt");
   }
 
   async create(user: User, dto: CreateEventDto): Promise<CalendarEvent> {
@@ -22,34 +26,46 @@ export class CalendarService {
     const end = new Date(dto.endAt);
     this.validateDateOrder(start, end);
 
-    const ev = this.calendarRepository.create({
+    const payload: any = {
       owner: user,
       title: dto.title,
-      description: dto.description ?? null,
+      description: dto.description ?? undefined,
       startAt: start,
       endAt: end,
       allDay: dto.allDay ?? false,
-      recurrence: dto.recurrence ?? null,
-    });
+      recurrence: dto.recurrence ?? undefined,
+    };
 
-    return await this.calendarRepository.save(ev);
+    const ev = this.calendarRepository.create(payload as any);
+    return await this.calendarRepository.save(ev as any);
   }
 
-  async findInRange(userId: string, startIso: string, endIso: string): Promise<CalendarEvent[]> {
+  async findInRange(
+    userId: string,
+    startIso: string,
+    endIso: string,
+  ): Promise<CalendarEvent[]> {
     const start = new Date(startIso);
     const end = new Date(endIso);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) throw new BadRequestException('Invalid date');
+    if (isNaN(start.getTime()) || isNaN(end.getTime()))
+      throw new BadRequestException("Invalid date");
     this.validateDateOrder(start, end);
 
     return await this.calendarRepository.find({
       where: { owner: { id: userId }, startAt: Between(start, end) },
-      order: { startAt: 'ASC' },
+      order: { startAt: "ASC" },
     });
   }
 
-  async update(userId: string, id: string, dto: UpdateEventDto): Promise<CalendarEvent> {
-    const event = await this.calendarRepository.findOne({ where: { id, owner: { id: userId } } });
-    if (!event) throw new NotFoundException('Event not found');
+  async update(
+    userId: string,
+    id: string,
+    dto: UpdateEventDto,
+  ): Promise<CalendarEvent> {
+    const event = await this.calendarRepository.findOne({
+      where: { id, owner: { id: userId } },
+    });
+    if (!event) throw new NotFoundException("Event not found");
 
     if (dto.startAt || dto.endAt) {
       const start = dto.startAt ? new Date(dto.startAt) : event.startAt;
@@ -62,7 +78,7 @@ export class CalendarService {
       description: dto.description ?? event.description,
       startAt: dto.startAt ? new Date(dto.startAt) : event.startAt,
       endAt: dto.endAt ? new Date(dto.endAt) : event.endAt,
-      allDay: typeof dto.allDay === 'boolean' ? dto.allDay : event.allDay,
+      allDay: typeof dto.allDay === "boolean" ? dto.allDay : event.allDay,
       recurrence: dto.recurrence ?? event.recurrence,
     });
 
@@ -70,7 +86,12 @@ export class CalendarService {
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    const result = await this.calendarRepository.delete({ id, owner: { id: userId } as any });
-    if (result.affected === 0) throw new NotFoundException('Event not found');
+    const result = await this.calendarRepository
+      .createQueryBuilder()
+      .delete()
+      .where('id = :id AND "ownerId" = :userId', { id, userId })
+      .execute();
+
+    if (result.affected === 0) throw new NotFoundException("Event not found");
   }
 }

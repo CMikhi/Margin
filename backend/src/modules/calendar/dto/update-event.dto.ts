@@ -1,8 +1,13 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateEventDto } from './create-event.dto';
-import { IsOptional, IsDateString, IsBoolean } from 'class-validator';
+import {
+  IsOptional,
+  IsDateString,
+  IsBoolean,
+  IsString,
+  MaxLength,
+  IsObject,
+} from "class-validator";
 
-export class UpdateEventDto extends PartialType(CreateEventDto) {
+export class UpdateEventDto {
   @IsOptional()
   @IsDateString()
   startAt?: string;
@@ -14,4 +19,17 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
   @IsOptional()
   @IsBoolean()
   allDay?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsObject()
+  recurrence?: Record<string, any>;
 }
