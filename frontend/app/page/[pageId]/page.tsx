@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo, use } from 'react';
-import { DashboardGrid } from '@/frontend/components/DashboardGrid';
-import { PageWithCommandMenu } from '@/frontend/components/PageWithCommandMenu';
-import { EditableTextWidget } from '@/frontend/components/EditableTextWidget';
-import { ImageWidget } from '@/frontend/components/ImageWidget';
-import { CalendarWidget } from '@/frontend/components/CalendarWidget';
-import { DailyEventsWidget } from '@/frontend/components/DailyEventsWidget';
-import { WelcomeWidget } from '@/frontend/components/WelcomeWidget';
+import { DashboardGrid } from '@/components/DashboardGrid';
+import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
+import { EditableTextWidget } from '@/components/EditableTextWidget';
+import { ImageWidget } from '@/components/ImageWidget';
+import { CalendarWidget } from '@/components/CalendarWidget';
+import { DailyEventsWidget } from '@/components/DailyEventsWidget';
+import { WelcomeWidget } from '@/components/WelcomeWidget';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 import { loadCustomPages } from '@/lib/utils/storage';
 import { useRouter } from 'next/navigation';
