@@ -1,6 +1,6 @@
 'use client'
 
-import { CommandMenu } from './CommandMenu'
+import { CommandMenu } from '@/components/CommandMenu'
 
 interface PageWithCommandMenuProps {
   children: React.ReactNode

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import SideBar from '@/frontend/components/SideBar'
+import SideBar from '@/components/SideBar'
 
 export const metadata: Metadata = {
   title: 'Margin – Weekly Focus Board',
