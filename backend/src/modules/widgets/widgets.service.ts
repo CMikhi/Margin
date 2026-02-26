@@ -1,0 +1,48 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
+import { WidgetPlacement } from './entities/widget-placement.entity';
+import { BulkUpdateWidgetsDto } from './dto/bulk-update-widgets.dto';
+import { WidgetPlacementDto } from './dto/widget-placement.dto';
+import { User } from '../common/entities/user.entity';
+
+@Injectable()
+export class WidgetsService {
+  constructor(
+    @InjectRepository(WidgetPlacement)
+    private readonly widgetRepo: Repository<WidgetPlacement>,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  async findAll(userId: string): Promise<WidgetPlacement[]> {
+    return await this.widgetRepo.find({ where: { owner: { id: userId } } });
+  }
+
+  /**
+   * Replace all widget placements for a user in a single transaction
+   */
+  async bulkReplace(user: User, dto: BulkUpdateWidgetsDto): Promise<WidgetPlacement[]> {
+    if (!dto.widgets || !Array.isArray(dto.widgets)) throw new BadRequestException('Missing widgets');
+
+    return await this.dataSource.transaction(async manager => {
+      // Delete existing
+      await manager.delete(WidgetPlacement, { owner: { id: user.id } as any });
+
+      const entities = dto.widgets.map((w: WidgetPlacementDto) => {
+        return manager.create(WidgetPlacement, {
+          owner: user,
+          widgetKey: w.widgetKey,
+          x: w.x,
+          y: w.y,
+          width: w.width,
+          height: w.height,
+          zIndex: w.zIndex ?? 0,
+          config: w.config ?? null,
+        });
+      });
+
+      const saved = await manager.save(entities);
+      return saved as WidgetPlacement[];
+    });
+  }
+}
