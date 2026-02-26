@@ -1,11 +1,11 @@
 'use client';
 
-import { PageWithCommandMenu } from '@/frontend/components/PageWithCommandMenu';
-import { DashboardGrid } from '@/frontend/components/DashboardGrid';
-import { CalendarWidget } from '@/frontend/components/CalendarWidget';
-import { DailyEventsWidget } from '@/frontend/components/DailyEventsWidget';
-import { EditableTextWidget } from '@/frontend/components/EditableTextWidget';
-import { ImageWidget } from '@/frontend/components/ImageWidget';
+import { PageWithCommandMenu } from '../../components/PageWithCommandMenu';
+import { DashboardGrid } from '../../components/DashboardGrid';
+import { CalendarWidget } from '../../components/CalendarWidget';
+import { DailyEventsWidget } from '../../components/DailyEventsWidget';
+import { EditableTextWidget } from '../../components/EditableTextWidget';
+import { ImageWidget } from '../../components/ImageWidget';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 
 export default function CalendarPage() {
