@@ -29,7 +29,7 @@ import {
 import { useFabricCanvas } from '@/lib/hooks/useFabricCanvas'
 
 // ── Types ───────────────────────────────────────────────────
-type ToolMode = 'select' | 'draw' | 'rect' | 'circle' | 'arrow'
+type ToolMode = 'select' | 'draw' | 'rect' | 'circle' | 'arrow' | 'eraser'
 
 interface LayerItem {
   index: number
@@ -51,6 +51,16 @@ interface FullCanvasWidgetProps {
 const DEFAULT_STROKE = '#1e1e1e'
 const DEFAULT_FILL = 'transparent'
 
+const ERASER_SIZES = [
+  { label: 'S', width: 10 },
+  { label: 'M', width: 24 },
+  { label: 'L', width: 44 },
+]
+
+// Visible preview colour shown while drawing an eraser stroke.
+// Swapped to destination-out on commit.
+const ERASER_PREVIEW = '#f5a0a0'
+
 export function FullCanvasWidget({
   id,
   initialData,
@@ -64,9 +74,13 @@ export function FullCanvasWidget({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [layers, setLayers] = useState<LayerItem[]>([])
   const [showLayers, setShowLayers] = useState(false)
+  const [activeEraserIdx, setActiveEraserIdx] = useState(1) // default Medium
 
   const hasRestored = useRef(false)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const isErasingRef = useRef(false)
+  const eraserCursorRef = useRef<HTMLDivElement | null>(null)
+  const canvasAreaRef = useRef<HTMLDivElement | null>(null)
 
   // ── Fabric hook ─────────────────────────────────────────
   const {
@@ -153,7 +167,19 @@ export function FullCanvasWidget({
     const handleMouseDown = (e: any) => console.log('[FullCanvasWidget] mouse:down', e.pointer)
     const handleMouseUp = (e: any) => console.log('[FullCanvasWidget] mouse:up', e.pointer)
     const onAdded = () => { console.log('[FullCanvasWidget] object:added'); onModified() }
-    const onPathCreated = () => { console.log('[FullCanvasWidget] path:created'); onModified() }
+    const onPathCreated = (opt: any) => {
+      console.log('[FullCanvasWidget] path:created')
+      // If erasing, swap the preview path to a destination-out eraser path
+      const path = opt.path
+      if (isErasingRef.current && path) {
+        path.set({
+          stroke: '#000000',
+          globalCompositeOperation: 'destination-out',
+        })
+        canvas.renderAll()
+      }
+      onModified()
+    }
 
     canvas.on('object:added', onAdded)
     canvas.on('object:removed', onModified)
@@ -180,25 +206,95 @@ export function FullCanvasWidget({
     if (tool === 'draw') {
       canvas.isDrawingMode = true
       canvas.selection = false
+      isErasingRef.current = false
       if (canvas.freeDrawingBrush) {
         canvas.freeDrawingBrush.color = color
         canvas.freeDrawingBrush.width = brushWidth
       }
+    } else if (tool === 'eraser') {
+      canvas.isDrawingMode = true
+      canvas.selection = false
+      isErasingRef.current = true
+      if (canvas.freeDrawingBrush) {
+        canvas.freeDrawingBrush.color = ERASER_PREVIEW
+        canvas.freeDrawingBrush.width = ERASER_SIZES[activeEraserIdx].width
+      }
     } else {
       canvas.isDrawingMode = false
       canvas.selection = tool === 'select'
+      isErasingRef.current = false
     }
-  }, [tool, color, brushWidth, isReady, getCanvas])
+  }, [tool, color, brushWidth, activeEraserIdx, isReady, getCanvas])
 
   // ── Colour / brush updates while drawing ────────────────
   useEffect(() => {
     const canvas = getCanvas()
-    if (!canvas || tool !== 'draw') return
+    if (!canvas || (tool !== 'draw' && tool !== 'eraser')) return
     if (canvas.freeDrawingBrush) {
-      canvas.freeDrawingBrush.color = color
-      canvas.freeDrawingBrush.width = brushWidth
+      if (tool === 'eraser') {
+        canvas.freeDrawingBrush.color = ERASER_PREVIEW
+        canvas.freeDrawingBrush.width = ERASER_SIZES[activeEraserIdx].width
+      } else {
+        canvas.freeDrawingBrush.color = color
+        canvas.freeDrawingBrush.width = brushWidth
+      }
     }
-  }, [color, brushWidth, tool, getCanvas])
+  }, [color, brushWidth, tool, activeEraserIdx, getCanvas])
+
+  // ── Eraser size change ────────────────────────────────────
+  const handleEraserSize = useCallback(
+    (idx: number) => {
+      setActiveEraserIdx(idx)
+      if (isErasingRef.current) {
+        const canvas = getCanvas()
+        if (canvas?.freeDrawingBrush) {
+          canvas.freeDrawingBrush.width = ERASER_SIZES[idx].width
+        }
+      }
+    },
+    [getCanvas],
+  )
+
+  // ── Eraser cursor tracking (direct DOM — no re-renders) ──
+  useEffect(() => {
+    const el = canvasAreaRef.current
+    const cursor = eraserCursorRef.current
+    if (!el || !cursor) return
+
+    if (tool !== 'eraser') {
+      cursor.style.display = 'none'
+      el.style.cursor = ''
+      return
+    }
+
+    el.style.cursor = 'none'
+    cursor.style.display = 'none'
+
+    const handleMove = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect()
+      cursor.style.display = 'block'
+      cursor.style.left = `${e.clientX - rect.left}px`
+      cursor.style.top = `${e.clientY - rect.top}px`
+    }
+    const handleLeave = () => { cursor.style.display = 'none' }
+    const handleEnter = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect()
+      cursor.style.display = 'block'
+      cursor.style.left = `${e.clientX - rect.left}px`
+      cursor.style.top = `${e.clientY - rect.top}px`
+    }
+
+    el.addEventListener('pointermove', handleMove)
+    el.addEventListener('pointerleave', handleLeave)
+    el.addEventListener('pointerenter', handleEnter)
+    return () => {
+      el.removeEventListener('pointermove', handleMove)
+      el.removeEventListener('pointerleave', handleLeave)
+      el.removeEventListener('pointerenter', handleEnter)
+      el.style.cursor = ''
+      cursor.style.display = 'none'
+    }
+  }, [tool])
 
   // ── Shape creation via pointer events on overlay ────────
   const shapeStartRef = useRef<{ x: number; y: number } | null>(null)
@@ -421,6 +517,7 @@ export function FullCanvasWidget({
           [
             { mode: 'select' as ToolMode, label: 'Select', icon: '⇢' },
             { mode: 'draw' as ToolMode, label: 'Draw', icon: '✎' },
+            { mode: 'eraser' as ToolMode, label: 'Eraser', icon: '⌫' },
             { mode: 'rect' as ToolMode, label: 'Rect', icon: '▭' },
             { mode: 'circle' as ToolMode, label: 'Circle', icon: '○' },
             { mode: 'arrow' as ToolMode, label: 'Arrow', icon: '→' },
@@ -445,6 +542,39 @@ export function FullCanvasWidget({
             {icon} {label}
           </button>
         ))}
+
+        {/* Eraser sizes — visible only in eraser mode */}
+        {tool === 'eraser' && (
+          <>
+            <div
+              className="w-px h-4 mx-1"
+              style={{ backgroundColor: 'var(--border-default)' }}
+            />
+            <div className="flex items-center gap-1">
+              {ERASER_SIZES.map((e, idx) => (
+                <button
+                  key={e.label}
+                  onClick={() => handleEraserSize(idx)}
+                  className="text-[10px] font-mono px-1.5 py-0.5 rounded transition-colors duration-100"
+                  style={{
+                    color:
+                      activeEraserIdx === idx
+                        ? 'var(--text-primary)'
+                        : 'var(--text-muted)',
+                    backgroundColor:
+                      activeEraserIdx === idx ? 'var(--bg-hover)' : 'transparent',
+                    border:
+                      activeEraserIdx === idx
+                        ? '1px solid var(--border-default)'
+                        : '1px solid transparent',
+                  }}
+                >
+                  {e.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Divider */}
         <div
@@ -516,7 +646,7 @@ export function FullCanvasWidget({
       {/* ── Body: canvas + optional layer panel ──────────── */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Canvas area */}
-        <div className="flex-1 relative min-h-0">
+        <div className="flex-1 relative min-h-0" ref={canvasAreaRef}>
           <div
             ref={containerRef}
             className="absolute inset-0 overflow-hidden"
@@ -526,6 +656,23 @@ export function FullCanvasWidget({
           >
             <canvas ref={canvasElRef} />
           </div>
+
+          {/* Eraser cursor outline */}
+          <div
+            ref={eraserCursorRef}
+            style={{
+              display: 'none',
+              position: 'absolute',
+              width: ERASER_SIZES[activeEraserIdx].width,
+              height: ERASER_SIZES[activeEraserIdx].width,
+              transform: 'translate(-50%, -50%)',
+              borderRadius: '50%',
+              border: '1.5px solid rgba(0,0,0,0.45)',
+              pointerEvents: 'none',
+              boxShadow: '0 0 0 1px rgba(255,255,255,0.5)',
+              zIndex: 50,
+            }}
+          />
         </div>
 
         {/* Layer panel (collapsible) */}
