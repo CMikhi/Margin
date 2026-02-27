@@ -1,10 +1,11 @@
-Install the required stuff
+# Install the required stuff
 
 ```bash
 npm i
 ```
 
 Run the program
+
 ```bash
 npm run dev
 # or

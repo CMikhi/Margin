@@ -20,7 +20,7 @@ export function WelcomeWidget() {
         </h2>
         <ol className="space-y-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
           <li className="flex gap-3">
-            <span className="font-semibold flex-shrink-0">1.</span>
+            <span className="font-semibold shrink-0">1.</span>
             <span>
               Click{' '}
               <kbd
@@ -58,15 +58,15 @@ export function WelcomeWidget() {
             </span>
           </li>
           <li className="flex gap-3">
-            <span className="font-semibold flex-shrink-0">2.</span>
+            <span className="font-semibold shrink-0">2.</span>
             <span>Select "Add Text Widget"</span>
           </li>
           <li className="flex gap-3">
-            <span className="font-semibold flex-shrink-0">3.</span>
+            <span className="font-semibold shrink-0">3.</span>
             <span>Select the widget</span>
           </li>
           <li className="flex gap-3">
-            <span className="font-semibold flex-shrink-0">4.</span>
+            <span className="font-semibold shrink-0">4.</span>
             <span>Click "/" to access the text tool bar or highlight a piece of text</span>
           </li>
         </ol>

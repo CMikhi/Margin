@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect, useMemo, use } from 'react';
-import { DashboardGrid } from '../../../components/DashboardGrid';
-import { PageWithCommandMenu } from '../../../components/PageWithCommandMenu';
-import { EditableTextWidget } from '../../../components/EditableTextWidget';
-import { ImageWidget } from '../../../components/ImageWidget';
-import { CalendarWidget } from '../../../components/CalendarWidget';
-import { DailyEventsWidget } from '../../../components/DailyEventsWidget';
-import { WelcomeWidget } from '../../../components/WelcomeWidget';
+import { DashboardGrid } from '@/components/DashboardGrid';
+import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
+import { EditableTextWidget } from '@/components/EditableTextWidget';
+import { ImageWidget } from '@/components/ImageWidget';
+import { CalendarWidget } from '@/components/CalendarWidget';
+import { DailyEventsWidget } from '@/components/DailyEventsWidget';
+import { StickyDrawingWidget } from '@/components/StickyDrawingWidget';
+import { FullCanvasWidget } from '@/components/FullCanvasWidget';
+import { WelcomeWidget } from '@/components/WelcomeWidget';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 import { loadCustomPages } from '@/lib/utils/storage';
 import { useRouter } from 'next/navigation';
@@ -20,15 +22,19 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
     layout, 
     textWidgets, 
     imageWidgets,
+    canvasWidgets,
     hiddenWidgets, 
     moveWidget, 
     resizeWidget, 
     addTextWidget,
     addImageWidget,
     addCalendarWidget,
-    addDailyEventsWidget, 
+    addDailyEventsWidget,
+    addStickyDrawing,
+    addFullCanvas,
     updateTextWidget,
-    updateImageWidget, 
+    updateImageWidget,
+    updateCanvasWidget,
     deleteWidget, 
     resetLayout, 
     isLoaded 
@@ -71,9 +77,28 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
         />
       ),
     }));
+
+    const canvasWidgetsList = Object.entries(canvasWidgets).map(([widgetId, data]) => ({
+      id: widgetId,
+      content: widgetId.startsWith('sticky-drawing-') ? (
+        <StickyDrawingWidget
+          id={widgetId}
+          initialData={data || undefined}
+          onDataChange={updateCanvasWidget}
+          onDelete={deleteWidget}
+        />
+      ) : (
+        <FullCanvasWidget
+          id={widgetId}
+          initialData={data || undefined}
+          onDataChange={updateCanvasWidget}
+          onDelete={deleteWidget}
+        />
+      ),
+    }));
     
-    return [...textWidgetsList, ...imageWidgetsList];
-  }, [textWidgets, imageWidgets, updateTextWidget, updateImageWidget, deleteWidget]);
+    return [...textWidgetsList, ...imageWidgetsList, ...canvasWidgetsList];
+  }, [textWidgets, imageWidgets, canvasWidgets, updateTextWidget, updateImageWidget, updateCanvasWidget, deleteWidget]);
 
   const STATIC_WIDGETS = useMemo(() => {
     return [
@@ -123,6 +148,8 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
       onAddImage={addImageWidget}
       onAddCalendar={addCalendarWidget}
       onAddDailyEvents={addDailyEventsWidget}
+      onAddStickyDrawing={addStickyDrawing}
+      onAddFullCanvas={addFullCanvas}
     >
       <DashboardGrid
         widgets={allWidgets}
