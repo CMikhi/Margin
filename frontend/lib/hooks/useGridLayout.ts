@@ -281,18 +281,18 @@ export function useGridLayout(pageId?: string) {
     }
   }, [layout, textWidgets, imageWidgets, staticContent, isLoaded, pageId])
 
-  // Helper: get max z-index from current layout
-  const getMaxZIndex = useCallback(() => {
-    return Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
-  }, [layout])
-
   // Bring widget to front
   const bringToFront = useCallback((widgetId: string) => {
     setLayout((prev) => {
       const widget = prev[widgetId]
       if (!widget) return prev
-      const maxZ = Math.max(0, ...Object.values(prev).map(pos => pos.zIndex))
-      if (widget.zIndex === maxZ) return prev // already on top
+      
+      const allZIndices = Object.values(prev).map(pos => pos.zIndex)
+      const maxZ = Math.max(...allZIndices)
+      
+      // If already at or above the top, don't change
+      if (widget.zIndex >= maxZ) return prev
+      
       return { ...prev, [widgetId]: { ...widget, zIndex: maxZ + 1 } }
     })
   }, [])
@@ -302,9 +302,28 @@ export function useGridLayout(pageId?: string) {
     setLayout((prev) => {
       const widget = prev[widgetId]
       if (!widget) return prev
-      const minZ = Math.min(0, ...Object.values(prev).map(pos => pos.zIndex))
-      if (widget.zIndex === minZ) return prev // already at bottom
-      return { ...prev, [widgetId]: { ...widget, zIndex: minZ - 1 } }
+      
+      const allZIndices = Object.values(prev).map(pos => pos.zIndex)
+      const minZ = Math.min(...allZIndices)
+      
+      // If already at or below the bottom, don't change
+      if (widget.zIndex <= minZ) return prev
+      
+      // If sending to back would create negative z-index, renormalize all widgets
+      const newZ = minZ - 1
+      if (newZ < 0) {
+        // Shift all widgets up by (-newZ) to keep everything >= 0
+        const offset = -newZ
+        const normalized: WidgetLayout = {}
+        for (const [id, pos] of Object.entries(prev)) {
+          normalized[id] = { ...pos, zIndex: pos.zIndex + offset }
+        }
+        // Now set this widget to 0
+        normalized[widgetId] = { ...normalized[widgetId], zIndex: 0 }
+        return normalized
+      }
+      
+      return { ...prev, [widgetId]: { ...widget, zIndex: newZ } }
     })
   }, [])
 
