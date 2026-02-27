@@ -202,7 +202,7 @@ function clampPosition(pos: WidgetPosition): WidgetPosition {
 function findEmptySpot(layout: WidgetLayout, colSpan: number, rowSpan: number): { col: number; row: number } | null {
   for (let row = 0; row <= GRID_ROWS - rowSpan; row++) {
     for (let col = 0; col <= GRID_COLS - colSpan; col++) {
-      const testPos: WidgetPosition = { col, row, colSpan, rowSpan }
+      const testPos: WidgetPosition = { col, row, colSpan, rowSpan, zIndex: 0 }
       if (!hasOverlap(layout, '__test__', testPos)) {
         return { col, row }
       }
@@ -281,49 +281,63 @@ export function useGridLayout(pageId?: string) {
     }
   }, [layout, textWidgets, imageWidgets, staticContent, isLoaded, pageId])
 
-  // Bring widget to front
+  // Move widget one layer up (swap with next higher layer)
   const bringToFront = useCallback((widgetId: string) => {
     setLayout((prev) => {
       const widget = prev[widgetId]
       if (!widget) return prev
       
-      const allZIndices = Object.values(prev).map(pos => pos.zIndex)
-      const maxZ = Math.max(...allZIndices)
+      // Get all z-indices sorted
+      const allZIndices = Object.values(prev).map(pos => pos.zIndex).sort((a, b) => a - b)
+      const uniqueZIndices = [...new Set(allZIndices)]
       
-      // If already at or above the top, don't change
-      if (widget.zIndex >= maxZ) return prev
+      // Find the next higher z-index
+      const nextHigherZ = uniqueZIndices.find(z => z > widget.zIndex)
       
-      return { ...prev, [widgetId]: { ...widget, zIndex: maxZ + 1 } }
+      // If no higher layer exists, widget is already on top
+      if (nextHigherZ === undefined) return prev
+      
+      // Find the widget(s) at the next higher layer and swap z-indices
+      const newLayout = { ...prev }
+      for (const [id, pos] of Object.entries(prev)) {
+        if (id === widgetId) {
+          newLayout[id] = { ...pos, zIndex: nextHigherZ }
+        } else if (pos.zIndex === nextHigherZ) {
+          newLayout[id] = { ...pos, zIndex: widget.zIndex }
+        }
+      }
+      
+      return newLayout
     })
   }, [])
 
-  // Send widget to back
+  // Move widget one layer down (swap with next lower layer)
   const sendToBack = useCallback((widgetId: string) => {
     setLayout((prev) => {
       const widget = prev[widgetId]
       if (!widget) return prev
       
-      const allZIndices = Object.values(prev).map(pos => pos.zIndex)
-      const minZ = Math.min(...allZIndices)
+      // Get all z-indices sorted
+      const allZIndices = Object.values(prev).map(pos => pos.zIndex).sort((a, b) => a - b)
+      const uniqueZIndices = [...new Set(allZIndices)]
       
-      // If already at or below the bottom, don't change
-      if (widget.zIndex <= minZ) return prev
+      // Find the next lower z-index
+      const nextLowerZ = [...uniqueZIndices].reverse().find(z => z < widget.zIndex)
       
-      // If sending to back would create negative z-index, renormalize all widgets
-      const newZ = minZ - 1
-      if (newZ < 0) {
-        // Shift all widgets up by (-newZ) to keep everything >= 0
-        const offset = -newZ
-        const normalized: WidgetLayout = {}
-        for (const [id, pos] of Object.entries(prev)) {
-          normalized[id] = { ...pos, zIndex: pos.zIndex + offset }
+      // If no lower layer exists, widget is already at bottom
+      if (nextLowerZ === undefined) return prev
+      
+      // Find the widget(s) at the next lower layer and swap z-indices
+      const newLayout = { ...prev }
+      for (const [id, pos] of Object.entries(prev)) {
+        if (id === widgetId) {
+          newLayout[id] = { ...pos, zIndex: nextLowerZ }
+        } else if (pos.zIndex === nextLowerZ) {
+          newLayout[id] = { ...pos, zIndex: widget.zIndex }
         }
-        // Now set this widget to 0
-        normalized[widgetId] = { ...normalized[widgetId], zIndex: 0 }
-        return normalized
       }
       
-      return { ...prev, [widgetId]: { ...widget, zIndex: newZ } }
+      return newLayout
     })
   }, [])
 

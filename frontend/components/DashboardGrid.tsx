@@ -328,7 +328,7 @@ export function DashboardGrid({ widgets, layout, moveWidget, resizeWidget, delet
                       e.currentTarget.style.color = 'var(--text-muted)'
                       e.currentTarget.style.backgroundColor = 'transparent'
                     }}
-                    title="Bring to front"
+                    title="Move layer up"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12" />
@@ -350,7 +350,7 @@ export function DashboardGrid({ widgets, layout, moveWidget, resizeWidget, delet
                       e.currentTarget.style.color = 'var(--text-muted)'
                       e.currentTarget.style.backgroundColor = 'transparent'
                     }}
-                    title="Send to back"
+                    title="Move layer down"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
