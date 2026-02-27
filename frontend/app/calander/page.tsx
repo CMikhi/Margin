@@ -30,6 +30,8 @@ export default function CalendarPage() {
     updateImageWidget,
     updateCanvasWidget,
     deleteWidget,
+    bringToFront,
+    sendToBack,
     resetLayout,
     isLoaded,
   } = useGridLayout('calendar-page');
@@ -142,6 +144,8 @@ export default function CalendarPage() {
         moveWidget={moveWidget}
         resizeWidget={resizeWidget}
         deleteWidget={deleteWidget}
+        bringToFront={bringToFront}
+        sendToBack={sendToBack}
         resetLayout={resetLayout}
         isLoaded={isLoaded}
       />

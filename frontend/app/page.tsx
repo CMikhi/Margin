@@ -135,7 +135,9 @@ export default function Home() {
     updateImageWidget, 
     updateCanvasWidget,
     updateStaticContent, 
-    deleteWidget, 
+    deleteWidget,
+    bringToFront,
+    sendToBack, 
     resetLayout, 
     isLoaded 
   } = useGridLayout();
@@ -280,6 +282,8 @@ export default function Home() {
         moveWidget={moveWidget}
         resizeWidget={resizeWidget}
         deleteWidget={deleteWidget}
+        bringToFront={bringToFront}
+        sendToBack={sendToBack}
         resetLayout={resetLayout}
         isLoaded={isLoaded} />
     </PageWithCommandMenu>
