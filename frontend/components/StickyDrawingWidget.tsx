@@ -35,6 +35,17 @@ const BRUSH_SIZES = [
   { label: 'L', width: 10 },
 ]
 
+const ERASER_SIZES = [
+  { label: 'S', width: 10 },
+  { label: 'M', width: 24 },
+  { label: 'L', width: 44 },
+]
+
+// Eraser preview colour — fully opaque so destination-out erases 100%.
+// Visible on the upper canvas during the live stroke, then swapped to
+// a destination-out path on commit.
+const ERASER_PREVIEW = '#f5a0a0'
+
 // ── Props ───────────────────────────────────────────────────
 interface StickyDrawingWidgetProps {
   id: string
@@ -45,7 +56,7 @@ interface StickyDrawingWidgetProps {
   onDelete?: (id: string) => void
 }
 
-const STICKY_BG = '#fef9c3' // warm yellow sticky-note background
+const STICKY_BG = '#F7F7F5' // cream sticky-note background
 
 export function StickyDrawingWidget({
   id,
@@ -55,8 +66,13 @@ export function StickyDrawingWidget({
 }: StickyDrawingWidgetProps) {
   const [activeColor, setActiveColor] = useState(COLORS[0])
   const [activeBrushIdx, setActiveBrushIdx] = useState(0)
+  const [activeEraserIdx, setActiveEraserIdx] = useState(1) // default Medium
   const [showBackground, setShowBackground] = useState(true)
+  const [isErasing, setIsErasing] = useState(false)
+  const isErasingRef = useRef(false)
   const hasRestored = useRef(false)
+  const eraserCursorRef = useRef<HTMLDivElement | null>(null)
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null)
 
   // Fabric hook — starts in free-drawing mode
   const { canvasElRef, containerRef, getCanvas, toJSON, loadFromJSON, isReady } =
@@ -110,53 +126,92 @@ export function StickyDrawingWidget({
     const canvas = getCanvas()
     if (!canvas) return
 
-    const handlePathCreated = () => {
-      console.log('[StickyDrawingWidget] path:created fired!')
+    const handlePathCreated = (opt: any) => {
+      const path = opt.path
+      if (isErasingRef.current && path) {
+        // Replace the visible preview path with a proper eraser path:
+        // - fully-opaque black stroke so destination-out removes 100%
+        // - globalCompositeOperation tells the renderer to erase
+        path.set({
+          stroke: '#000000',
+          globalCompositeOperation: 'destination-out',
+        })
+        canvas.renderAll()
+      }
       const json = toJSON()
       if (json && onDataChange) {
         onDataChange(id, JSON.stringify(json))
       }
     }
 
-    // Also log mouse events for debugging
-    const handleMouseDown = (e: any) => console.log('[StickyDrawingWidget] mouse:down', e.pointer)
-    const handleMouseMove = (e: any) => {
-      // Only log occasionally to avoid spam
-      if (Math.random() < 0.02) console.log('[StickyDrawingWidget] mouse:move (sampled)', e.pointer)
-    }
-    const handleMouseUp = (e: any) => console.log('[StickyDrawingWidget] mouse:up', e.pointer)
-
     canvas.on('path:created', handlePathCreated)
-    canvas.on('mouse:down', handleMouseDown)
-    canvas.on('mouse:move', handleMouseMove)
-    canvas.on('mouse:up', handleMouseUp)
     return () => {
       canvas.off('path:created', handlePathCreated)
-      canvas.off('mouse:down', handleMouseDown)
-      canvas.off('mouse:move', handleMouseMove)
-      canvas.off('mouse:up', handleMouseUp)
     }
   }, [isReady, getCanvas, toJSON, id, onDataChange])
+
+  // ── Helper: update the existing brush (never replace it) ──
+  const setBrush = useCallback(
+    (color: string, width: number) => {
+      const canvas = getCanvas()
+      if (!canvas?.freeDrawingBrush) return
+      canvas.freeDrawingBrush.color = color
+      canvas.freeDrawingBrush.width = width
+    },
+    [getCanvas],
+  )
 
   // ── Colour change ─────────────────────────────────────────
   const handleColorChange = useCallback(
     (color: string) => {
       setActiveColor(color)
-      const canvas = getCanvas()
-      if (canvas?.freeDrawingBrush) {
-        canvas.freeDrawingBrush.color = color
+      // Exit eraser mode when a colour is selected
+      if (isErasingRef.current) {
+        setIsErasing(false)
+        isErasingRef.current = false
       }
+      setBrush(color, BRUSH_SIZES[activeBrushIdx].width)
     },
-    [getCanvas],
+    [activeBrushIdx, setBrush],
   )
 
   // ── Brush width change ────────────────────────────────────
   const handleBrushSize = useCallback(
     (idx: number) => {
       setActiveBrushIdx(idx)
+      if (isErasingRef.current) return // brush size doesn't affect eraser
       const canvas = getCanvas()
       if (canvas?.freeDrawingBrush) {
         canvas.freeDrawingBrush.width = BRUSH_SIZES[idx].width
+      }
+    },
+    [getCanvas],
+  )
+
+  // ── Eraser toggle ─────────────────────────────────────────
+  const handleToggleEraser = useCallback(() => {
+    if (isErasingRef.current) {
+      // Back to drawing
+      setIsErasing(false)
+      isErasingRef.current = false
+      setBrush(activeColor, BRUSH_SIZES[activeBrushIdx].width)
+    } else {
+      // Enter eraser mode — use a visible preview colour
+      setIsErasing(true)
+      isErasingRef.current = true
+      setBrush(ERASER_PREVIEW, ERASER_SIZES[activeEraserIdx].width)
+    }
+  }, [activeColor, activeBrushIdx, activeEraserIdx, setBrush])
+
+  // ── Eraser size change ────────────────────────────────────
+  const handleEraserSize = useCallback(
+    (idx: number) => {
+      setActiveEraserIdx(idx)
+      if (isErasingRef.current) {
+        const canvas = getCanvas()
+        if (canvas?.freeDrawingBrush) {
+          canvas.freeDrawingBrush.width = ERASER_SIZES[idx].width
+        }
       }
     },
     [getCanvas],
@@ -173,6 +228,50 @@ export function StickyDrawingWidget({
       onDataChange(id, JSON.stringify(canvas.toJSON()))
     }
   }, [getCanvas, id, onDataChange])
+
+  // ── Eraser cursor tracking (direct DOM — no React re-renders) ──
+  useEffect(() => {
+    const el = canvasContainerRef.current
+    const cursor = eraserCursorRef.current
+    if (!el || !cursor) return
+
+    if (!isErasing) {
+      cursor.style.display = 'none'
+      el.style.cursor = ''
+      return
+    }
+
+    // Hide native cursor while erasing
+    el.style.cursor = 'none'
+    cursor.style.display = 'none' // hidden until first move
+
+    const handleMove = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect()
+      cursor.style.display = 'block'
+      cursor.style.left = `${e.clientX - rect.left}px`
+      cursor.style.top = `${e.clientY - rect.top}px`
+    }
+    const handleLeave = () => {
+      cursor.style.display = 'none'
+    }
+    const handleEnter = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect()
+      cursor.style.display = 'block'
+      cursor.style.left = `${e.clientX - rect.left}px`
+      cursor.style.top = `${e.clientY - rect.top}px`
+    }
+
+    el.addEventListener('pointermove', handleMove)
+    el.addEventListener('pointerleave', handleLeave)
+    el.addEventListener('pointerenter', handleEnter)
+    return () => {
+      el.removeEventListener('pointermove', handleMove)
+      el.removeEventListener('pointerleave', handleLeave)
+      el.removeEventListener('pointerenter', handleEnter)
+      el.style.cursor = ''
+      cursor.style.display = 'none'
+    }
+  }, [isErasing])
 
   // ── Toggle background ─────────────────────────────────
   const handleToggleBg = useCallback(() => {
@@ -242,6 +341,55 @@ export function StickyDrawingWidget({
           ))}
         </div>
 
+        {/* Divider */}
+        <div
+          className="w-px h-4 mx-1"
+          style={{ backgroundColor: 'var(--border-default)' }}
+        />
+
+        {/* Eraser toggle */}
+        <button
+          onClick={handleToggleEraser}
+          className="text-[10px] font-mono px-1.5 py-0.5 rounded transition-colors duration-100"
+          style={{
+            color: isErasing ? 'var(--text-primary)' : 'var(--text-muted)',
+            backgroundColor: isErasing ? 'var(--bg-hover)' : 'transparent',
+            border: isErasing
+              ? '1px solid var(--border-default)'
+              : '1px solid transparent',
+          }}
+          title={isErasing ? 'Switch to draw' : 'Eraser'}
+        >
+          Eraser
+        </button>
+
+        {/* Eraser sizes — visible only when erasing */}
+        {isErasing && (
+          <div className="flex items-center gap-1">
+            {ERASER_SIZES.map((e, idx) => (
+              <button
+                key={e.label}
+                onClick={() => handleEraserSize(idx)}
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded transition-colors duration-100"
+                style={{
+                  color:
+                    activeEraserIdx === idx
+                      ? 'var(--text-primary)'
+                      : 'var(--text-muted)',
+                  backgroundColor:
+                    activeEraserIdx === idx ? 'var(--bg-hover)' : 'transparent',
+                  border:
+                    activeEraserIdx === idx
+                      ? '1px solid var(--border-default)'
+                      : '1px solid transparent',
+                }}
+              >
+                {e.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Spacer */}
         <div className="flex-1" />
 
@@ -281,7 +429,7 @@ export function StickyDrawingWidget({
       </div>
 
       {/* ── Canvas container ────────────────────────────── */}
-      <div className="flex-1 min-h-0 relative">
+      <div className="flex-1 min-h-0 relative" ref={canvasContainerRef}>
         <div
           ref={containerRef}
           className="absolute inset-0 overflow-hidden"
@@ -289,6 +437,23 @@ export function StickyDrawingWidget({
         >
           <canvas ref={canvasElRef} />
         </div>
+
+        {/* Eraser size outline cursor (always in DOM, visibility toggled via ref) */}
+        <div
+          ref={eraserCursorRef}
+          style={{
+            display: 'none',
+            position: 'absolute',
+            width: ERASER_SIZES[activeEraserIdx].width,
+            height: ERASER_SIZES[activeEraserIdx].width,
+            transform: 'translate(-50%, -50%)',
+            borderRadius: '50%',
+            border: '1.5px solid rgba(0,0,0,0.45)',
+            pointerEvents: 'none',
+            boxShadow: '0 0 0 1px rgba(255,255,255,0.5)',
+            zIndex: 50,
+          }}
+        />
       </div>
     </div>
   )
