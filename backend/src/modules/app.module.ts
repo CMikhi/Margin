@@ -5,6 +5,9 @@ import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtModule } from "./jwt/jwt.module";
 import { DbModule } from "./db/db.module";
+import { WidgetsModule } from "./widgets/widgets.module";
+import { NotesModule } from "./notes/notes.module";
+import { CalendarModule } from "./calendar/calendar.module";
 import { ConfigModule } from "@nestjs/config";
 import { CommonModule } from "./common/common.module";
 
@@ -21,10 +24,13 @@ import { CommonModule } from "./common/common.module";
     }),
     TypeOrmModule.forRoot({
       type: "sqlite",
-      database: "../database.db", // Use repo root database for compatibility
+      database: process.env.DATABASE_PATH || "./database.db", // Use repo root database for compatibility
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== "production",
     }),
+    CalendarModule,
+    NotesModule,
+    WidgetsModule,
     RolesModule,
     UsersModule,
     AuthModule,

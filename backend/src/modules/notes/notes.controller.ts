@@ -4,19 +4,26 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../common/AuthenticatedRequest';
+import { ApiTags, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { Note } from './entities/note.entity';
 
 @Controller('notes')
+@ApiTags('Notes')
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Post()
+  @ApiBody({ type: CreateNoteDto })
+  @ApiResponse({ type: Note })
   async create(@Request() req: AuthenticatedRequest, @Body() dto: CreateNoteDto) {
-    const note = await this.notesService.create(req.user as any, dto as any);
+    const note = await this.notesService.create(req.user as any, dto);
     return { data: note };
   }
 
   @Get()
+  @ApiResponse({ type: Note, isArray: true })
   async findAll(
     @Request() req: AuthenticatedRequest,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
@@ -27,14 +34,17 @@ export class NotesController {
   }
 
   @Get(':id')
+  @ApiResponse({ type: Note })
   async findOne(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     const note = await this.notesService.findOne(req.user.id, id);
     return { data: note };
   }
 
   @Patch(':id')
+  @ApiBody({ type: UpdateNoteDto })
+  @ApiResponse({ type: Note })
   async update(@Request() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdateNoteDto) {
-    const note = await this.notesService.update(req.user.id, id, dto as any);
+    const note = await this.notesService.update(req.user.id, id, dto);
     return { data: note };
   }
 
