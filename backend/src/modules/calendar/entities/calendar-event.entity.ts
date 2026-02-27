@@ -17,10 +17,10 @@ export class CalendarEvent {
   @Column('text', { nullable: true })
   description?: string;
 
-  @Column({ type: 'timestamptz' })
+  @Column()
   startAt: Date;
 
-  @Column({ type: 'timestamptz' })
+  @Column()
   endAt: Date;
 
   @Column({ default: false })
@@ -29,9 +29,9 @@ export class CalendarEvent {
   @Column({ type: 'json', nullable: true })
   recurrence?: Record<string, any>;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt?: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt?: Date;
 }

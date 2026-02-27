@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -65,7 +64,7 @@ export class WidgetsService {
       });
 
       const saved = await manager.save(entities);
-      return saved as WidgetPlacement[];
+      return saved;
     });
   }
 }

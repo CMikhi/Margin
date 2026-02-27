@@ -7,6 +7,8 @@ import {
   Param,
   UseGuards,
   Request,
+  Patch,
+  Body,
 } from "@nestjs/common";
 import { RolesService } from "./roles.service";
 import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
@@ -43,30 +45,17 @@ export class RolesController {
       role: role,
     };
   }
+  
   // Deprecated endpoint for updating user roles,
   // Will be re-enabled after refactoring for admin role escalation 
-  //
-  // @Patch(":uuid")
-  // @UseGuards(RolesGuard)
-  // @Roles(UserRole.ADMIN) // Only admins can update roles
-  // @HttpCode(HttpStatus.OK)
-  // async updateUser(
-  //     @Param("uuid") uuid: string,
-  //     @Body("role") role: string,
-  // ) {
-  //     // Validate role before updating
-  //     if (!this.rolesService.isValidRole(role)) {
-  //         return { 
-  //             message: "Invalid role. Valid roles are: " + Object.values(UserRole).join(", "), 
-  //             status: HttpStatus.BAD_REQUEST
-  //         };
-  //     }
-
-  //     const updatedUser = await this.rolesService.update(uuid, role);
-  //     if (!updatedUser) return { message: "User not found", status: HttpStatus.NOT_FOUND };
-  //     return {
-  //         message: "User role updated successfully",
-  //         data: { id: updatedUser.id, username: updatedUser.username, role: updatedUser.role },
-  //     };
-  // }
+  
+  @Patch(":uuid")
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.GONE)
+  updateUser() {
+    return {
+      message: "This route is deprecated and will not be re-enabled until further notice"
+    }
+  }
 }
