@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
-import { DashboardGrid } from '@/frontend/components/DashboardGrid';
-import { PageWithCommandMenu } from '@/frontend/components/PageWithCommandMenu';
-import { EditableTextWidget } from '@/frontend/components/EditableTextWidget';
-import { ImageWidget } from '@/frontend/components/ImageWidget';
-import { CalendarWidget } from '@/frontend/components/CalendarWidget';
-import { DailyEventsWidget } from '@/frontend/components/DailyEventsWidget';
-import { EditableSpan } from '@/frontend/components/EditableSpan';
+import { DashboardGrid } from '../components/DashboardGrid';
+import { PageWithCommandMenu } from '../components/PageWithCommandMenu';
+import { EditableTextWidget } from '../components/EditableTextWidget';
+import { ImageWidget } from '../components/ImageWidget';
+import { CalendarWidget } from '../components/CalendarWidget';
+import { DailyEventsWidget } from '../components/DailyEventsWidget';
+import { EditableSpan } from '../components/EditableSpan';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 
 const fadeIn = {

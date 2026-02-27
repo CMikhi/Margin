@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion';
-import CalendarComponent from '@/frontend/app/calander/calendar';
+import CalendarComponent from '../app/calander/calendar';
 
 interface CalendarWidgetProps {
   id: string;
