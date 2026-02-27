@@ -508,10 +508,12 @@ export function useGridLayout(pageId?: string) {
   const addStickyDrawing = useCallback(() => {
     const widgetId = `sticky-drawing-${Date.now()}`
     const spot = findEmptySpot(layout, 2, 2)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
+
     if (!spot) {
-      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
     } else {
-      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
     }
     setCanvasWidgets((prev) => ({ ...prev, [widgetId]: '' }))
     return widgetId
@@ -520,10 +522,12 @@ export function useGridLayout(pageId?: string) {
   const addFullCanvas = useCallback(() => {
     const widgetId = `canvas-${Date.now()}`
     const spot = findEmptySpot(layout, 4, 4)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
+
     if (!spot) {
-      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 4, rowSpan: 4 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 4, rowSpan: 4, zIndex: maxZ + 1 } }))
     } else {
-      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 4, rowSpan: 4 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 4, rowSpan: 4, zIndex: maxZ + 1 } }))
     }
     setCanvasWidgets((prev) => ({ ...prev, [widgetId]: '' }))
     return widgetId
