@@ -9,6 +9,7 @@ import { ImageWidget } from '@/components/ImageWidget';
 import { StickyDrawingWidget } from '@/components/StickyDrawingWidget';
 import { FullCanvasWidget } from '@/components/FullCanvasWidget';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
+import { ReactNode } from 'react';
 
 export default function CalendarPage() {
   const {
@@ -98,9 +99,12 @@ export default function CalendarPage() {
           onDelete={deleteWidget}
         />
       ),
-    })),
-    // Canvas widgets (sticky drawings & full canvases)
-    ...Object.entries(canvasWidgets).map(([widgetId, data]) => ({
+    });
+  });
+
+  // Canvas widgets (sticky drawings & full canvases)
+  Object.entries(canvasWidgets).forEach(([widgetId, data]) => {
+    widgets.push({
       id: widgetId,
       minColSpan: 2,
       minRowSpan: 2,
@@ -119,8 +123,8 @@ export default function CalendarPage() {
           onDelete={deleteWidget}
         />
       ),
-    })),
-  ].filter((widget) => widget !== false);
+    });
+  });
 
   return (
     <PageWithCommandMenu
