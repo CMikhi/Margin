@@ -1,19 +1,22 @@
 'use client';
 
-import { PageWithCommandMenu } from '../../components/PageWithCommandMenu';
-import { DashboardGrid } from '../../components/DashboardGrid';
-import { CalendarWidget } from '../../components/CalendarWidget';
-import { DailyEventsWidget } from '../../components/DailyEventsWidget';
-import { EditableTextWidget } from '../../components/EditableTextWidget';
-import { ImageWidget } from '../../components/ImageWidget';
-import type { ReactNode } from 'react';
+import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
+import { DashboardGrid } from '@/components/DashboardGrid';
+import { CalendarWidget } from '@/components/CalendarWidget';
+import { DailyEventsWidget } from '@/components/DailyEventsWidget';
+import { EditableTextWidget } from '@/components/EditableTextWidget';
+import { ImageWidget } from '@/components/ImageWidget';
+import { StickyDrawingWidget } from '@/components/StickyDrawingWidget';
+import { FullCanvasWidget } from '@/components/FullCanvasWidget';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
+import { ReactNode } from 'react';
 
 export default function CalendarPage() {
   const {
     layout,
     textWidgets,
     imageWidgets,
+    canvasWidgets,
     hiddenWidgets,
     moveWidget,
     resizeWidget,
@@ -21,8 +24,11 @@ export default function CalendarPage() {
     addImageWidget,
     addCalendarWidget,
     addDailyEventsWidget,
+    addStickyDrawing,
+    addFullCanvas,
     updateTextWidget,
     updateImageWidget,
+    updateCanvasWidget,
     deleteWidget,
     bringToFront,
     sendToBack,
@@ -98,6 +104,30 @@ export default function CalendarPage() {
     });
   });
 
+  // Canvas widgets (sticky drawings & full canvases)
+  Object.entries(canvasWidgets).forEach(([widgetId, data]) => {
+    widgets.push({
+      id: widgetId,
+      minColSpan: 2,
+      minRowSpan: 2,
+      content: widgetId.startsWith('sticky-drawing-') ? (
+        <StickyDrawingWidget
+          id={widgetId}
+          initialData={data || undefined}
+          onDataChange={updateCanvasWidget}
+          onDelete={deleteWidget}
+        />
+      ) : (
+        <FullCanvasWidget
+          id={widgetId}
+          initialData={data || undefined}
+          onDataChange={updateCanvasWidget}
+          onDelete={deleteWidget}
+        />
+      ),
+    });
+  });
+
   return (
     <PageWithCommandMenu
       pageTitle="📅 Calendar"
@@ -105,6 +135,8 @@ export default function CalendarPage() {
       onAddImage={addImageWidget}
       onAddCalendar={addCalendarWidget}
       onAddDailyEvents={addDailyEventsWidget}
+      onAddStickyDrawing={addStickyDrawing}
+      onAddFullCanvas={addFullCanvas}
     >
       <DashboardGrid
         widgets={widgets}

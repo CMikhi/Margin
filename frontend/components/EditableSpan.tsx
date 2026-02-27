@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TipTapEditor } from './TipTapEditor'
+import { TipTapEditor } from '@/components/TipTapEditor'
 
 interface EditableSpanProps {
   id: string

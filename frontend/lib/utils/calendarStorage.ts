@@ -1,4 +1,4 @@
-import { CalendarEvent } from '../types';
+import { CalendarEvent } from '@/lib/types';
 
 // ─── Storage Keys ──────────────────────────────────────────────────────────────
 const EVENTS_STORAGE_KEY = 'margin-calendar-events';
