@@ -9,6 +9,8 @@ interface PageWithCommandMenuProps {
   onAddImage?: () => void
   onAddCalendar?: () => void
   onAddDailyEvents?: () => void
+  onAddStickyDrawing?: () => void
+  onAddFullCanvas?: () => void
 }
 
 export function PageWithCommandMenu({ 
@@ -17,7 +19,9 @@ export function PageWithCommandMenu({
   onAddTextBox, 
   onAddImage,
   onAddCalendar,
-  onAddDailyEvents
+  onAddDailyEvents,
+  onAddStickyDrawing,
+  onAddFullCanvas,
 }: PageWithCommandMenuProps) {
   return (
     <>
@@ -27,6 +31,8 @@ export function PageWithCommandMenu({
         onAddImage={onAddImage}
         onAddCalendar={onAddCalendar}
         onAddDailyEvents={onAddDailyEvents}
+        onAddStickyDrawing={onAddStickyDrawing}
+        onAddFullCanvas={onAddFullCanvas}
       />
       {children}
     </>

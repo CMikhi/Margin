@@ -9,6 +9,8 @@ import { EditableTextWidget } from '@/components/EditableTextWidget';
 import { ImageWidget } from '@/components/ImageWidget';
 import { CalendarWidget } from '@/components/CalendarWidget';
 import { DailyEventsWidget } from '@/components/DailyEventsWidget';
+import { StickyDrawingWidget } from '@/components/StickyDrawingWidget';
+import { FullCanvasWidget } from '@/components/FullCanvasWidget';
 import { EditableSpan } from '@/components/EditableSpan';
 import { useGridLayout } from '@/lib/hooks/useGridLayout';
 
@@ -118,6 +120,7 @@ export default function Home() {
     layout, 
     textWidgets, 
     imageWidgets, 
+    canvasWidgets,
     staticContent, 
     hiddenWidgets, 
     moveWidget, 
@@ -126,8 +129,11 @@ export default function Home() {
     addImageWidget,
     addCalendarWidget,
     addDailyEventsWidget,
+    addStickyDrawing,
+    addFullCanvas,
     updateTextWidget, 
     updateImageWidget, 
+    updateCanvasWidget,
     updateStaticContent, 
     deleteWidget, 
     resetLayout, 
@@ -175,9 +181,28 @@ export default function Home() {
         />
       ),
     }));
+
+    const canvasWidgetsList = Object.entries(canvasWidgets).map(([widgetId, data]) => ({
+      id: widgetId,
+      content: widgetId.startsWith('sticky-drawing-') ? (
+        <StickyDrawingWidget
+          id={widgetId}
+          initialData={data || undefined}
+          onDataChange={updateCanvasWidget}
+          onDelete={deleteWidget}
+        />
+      ) : (
+        <FullCanvasWidget
+          id={widgetId}
+          initialData={data || undefined}
+          onDataChange={updateCanvasWidget}
+          onDelete={deleteWidget}
+        />
+      ),
+    }));
     
-    return [...textWidgetsList, ...imageWidgetsList];
-  }, [textWidgets, imageWidgets, updateTextWidget, updateImageWidget, deleteWidget]);
+    return [...textWidgetsList, ...imageWidgetsList, ...canvasWidgetsList];
+  }, [textWidgets, imageWidgets, canvasWidgets, updateTextWidget, updateImageWidget, updateCanvasWidget, deleteWidget]);
 
   const STATIC_WIDGETS = useMemo(() => [
     {
@@ -246,6 +271,8 @@ export default function Home() {
       onAddImage={addImageWidget}
       onAddCalendar={addCalendarWidget}
       onAddDailyEvents={addDailyEventsWidget}
+      onAddStickyDrawing={addStickyDrawing}
+      onAddFullCanvas={addFullCanvas}
     >
       <DashboardGrid
         widgets={allWidgets}
