@@ -36,6 +36,8 @@ export function useFabricCanvas(options: UseFabricCanvasOptions = {}) {
   const canvasElRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const fabricRef = useRef<FabricCanvas | null>(null)
+  const fabricWrapperRef = useRef<HTMLElement | null>(null)
+  const resizeRafRef = useRef<number>(0)
   const [isReady, setIsReady] = useState(false)
 
   // Resize the canvas to fill its container
@@ -48,7 +50,13 @@ export function useFabricCanvas(options: UseFabricCanvasOptions = {}) {
     if (width === 0 || height === 0) return
 
     canvas.setDimensions({ width, height })
-    canvas.renderAll()
+    // Re-apply percentage sizing on Fabric's wrapper so it tracks future
+    // parent resizes. setDimensions overwrites these with fixed pixels.
+    const wrap = fabricWrapperRef.current
+    if (wrap) {
+      wrap.style.width = '100%'
+      wrap.style.height = '100%'
+    }
   }, [])
 
   // ------------------------------------------------------------------
@@ -98,6 +106,7 @@ export function useFabricCanvas(options: UseFabricCanvasOptions = {}) {
         wrapperEl.style.inset = '0'
         wrapperEl.style.width = '100%'
         wrapperEl.style.height = '100%'
+        fabricWrapperRef.current = wrapperEl
         console.log('[useFabricCanvas] Wrapper styled successfully')
       } else {
         console.warn('[useFabricCanvas] No wrapper element found!')
@@ -132,18 +141,34 @@ export function useFabricCanvas(options: UseFabricCanvasOptions = {}) {
       console.log('[useFabricCanvas] ✅ Canvas ready, isReady=true')
       onReady?.(canvas)
 
-      // Observe container resizes
-      resizeObserver = new ResizeObserver(() => {
-        if (!disposed) {
+      // Observe container resizes.
+      // Debounce via rAF so the DOM has settled and we only resize once
+      // per frame, even if the observer fires multiple times.
+      resizeObserver = new ResizeObserver((entries) => {
+        if (disposed) return
+        cancelAnimationFrame(resizeRafRef.current)
+        resizeRafRef.current = requestAnimationFrame(() => {
+          if (disposed) return
           const c = fabricRef.current
           const cont = containerRef.current
           if (!c || !cont) return
-          const { width: w, height: h } = cont.getBoundingClientRect()
-          if (w > 0 && h > 0) {
-            c.setDimensions({ width: w, height: h })
-            c.renderAll()
+
+          // Prefer the entry's contentRect (guaranteed to be the new size)
+          const entry = entries[0]
+          const w = entry?.contentRect?.width ?? cont.getBoundingClientRect().width
+          const h = entry?.contentRect?.height ?? cont.getBoundingClientRect().height
+          if (w <= 0 || h <= 0) return
+
+          c.setDimensions({ width: w, height: h })
+
+          // Fabric's setCSSDimensions overwrites the wrapper's percentage sizes
+          // with fixed pixels. Re-apply so it keeps tracking the parent.
+          const wrap = fabricWrapperRef.current
+          if (wrap) {
+            wrap.style.width = '100%'
+            wrap.style.height = '100%'
           }
-        }
+        })
       })
       resizeObserver.observe(containerRef.current)
     }
@@ -152,11 +177,13 @@ export function useFabricCanvas(options: UseFabricCanvasOptions = {}) {
 
     return () => {
       disposed = true
+      cancelAnimationFrame(resizeRafRef.current)
       resizeObserver?.disconnect()
       if (fabricRef.current) {
         fabricRef.current.dispose()
         fabricRef.current = null
       }
+      fabricWrapperRef.current = null
       setIsReady(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
