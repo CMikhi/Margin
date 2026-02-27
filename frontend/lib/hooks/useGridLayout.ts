@@ -5,6 +5,7 @@ export interface WidgetPosition {
   row: number   // 0-based row index
   colSpan: number
   rowSpan: number
+  zIndex: number // layering order (higher = on top)
 }
 
 export interface WidgetLayout {
@@ -33,20 +34,20 @@ const HOME_DEFAULT_WELCOME_HTML = `<h1>Margin</h1><h2>Welcome to Margin!</h2><p>
 function getDefaultLayout(pageId?: string): WidgetLayout {
   if (pageId === 'calendar-page') {
     return {
-      calendar: { col: 0, row: 0, colSpan: 8, rowSpan: 8 },
+      calendar: { col: 0, row: 0, colSpan: 8, rowSpan: 8, zIndex: 0 },
     }
   }
   if (pageId) {
     return {
-      welcome: { col: 1, row: 1, colSpan: 6, rowSpan: 4 },
+      welcome: { col: 1, row: 1, colSpan: 6, rowSpan: 4, zIndex: 0 },
     }
   }
   // Home page
   return {
-    'image-default-cat': { col: 0, row: 0, colSpan: 1, rowSpan: 2 },
-    quickLinks: { col: 0, row: 2, colSpan: 1, rowSpan: 2 },
-    'text-default-welcome': { col: 1, row: 0, colSpan: 6, rowSpan: 8 },
-    'image-default-bookmark': { col: 7, row: 0, colSpan: 1, rowSpan: 8 },
+    'image-default-cat': { col: 0, row: 0, colSpan: 1, rowSpan: 2, zIndex: 0 },
+    quickLinks: { col: 0, row: 2, colSpan: 1, rowSpan: 2, zIndex: 1 },
+    'text-default-welcome': { col: 1, row: 0, colSpan: 6, rowSpan: 8, zIndex: 2 },
+    'image-default-bookmark': { col: 7, row: 0, colSpan: 1, rowSpan: 8, zIndex: 3 },
   }
 }
 
@@ -227,7 +228,16 @@ export function useGridLayout(pageId?: string) {
     const storedStatic = loadStaticContent(pageId)
 
     if (storedLayout) {
-      setLayout(storedLayout)
+      // Migrate old layouts that don't have zIndex
+      const migratedLayout: WidgetLayout = {}
+      let nextZIndex = 0
+      for (const [id, pos] of Object.entries(storedLayout)) {
+        migratedLayout[id] = {
+          ...pos,
+          zIndex: pos.zIndex ?? nextZIndex++
+        }
+      }
+      setLayout(migratedLayout)
     } else {
       setLayout(defaults)
     }
@@ -271,6 +281,33 @@ export function useGridLayout(pageId?: string) {
     }
   }, [layout, textWidgets, imageWidgets, staticContent, isLoaded, pageId])
 
+  // Helper: get max z-index from current layout
+  const getMaxZIndex = useCallback(() => {
+    return Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
+  }, [layout])
+
+  // Bring widget to front
+  const bringToFront = useCallback((widgetId: string) => {
+    setLayout((prev) => {
+      const widget = prev[widgetId]
+      if (!widget) return prev
+      const maxZ = Math.max(0, ...Object.values(prev).map(pos => pos.zIndex))
+      if (widget.zIndex === maxZ) return prev // already on top
+      return { ...prev, [widgetId]: { ...widget, zIndex: maxZ + 1 } }
+    })
+  }, [])
+
+  // Send widget to back
+  const sendToBack = useCallback((widgetId: string) => {
+    setLayout((prev) => {
+      const widget = prev[widgetId]
+      if (!widget) return prev
+      const minZ = Math.min(0, ...Object.values(prev).map(pos => pos.zIndex))
+      if (widget.zIndex === minZ) return prev // already at bottom
+      return { ...prev, [widgetId]: { ...widget, zIndex: minZ - 1 } }
+    })
+  }, [])
+
   const moveWidget = useCallback(
     (widgetId: string, newCol: number, newRow: number) => {
       setLayout((prev) => {
@@ -312,12 +349,13 @@ export function useGridLayout(pageId?: string) {
   const addTextWidget = useCallback(() => {
     const widgetId = `text-${Date.now()}`
     const spot = findEmptySpot(layout, 3, 2)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
 
     if (!spot) {
       // Grid is full, place at 0,0 anyway (will overlap)
-      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 2, zIndex: maxZ + 1 } }))
     } else {
-      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 2, zIndex: maxZ + 1 } }))
     }
 
     setTextWidgets((prev) => ({ ...prev, [widgetId]: 'Click to edit...' }))
@@ -337,10 +375,11 @@ export function useGridLayout(pageId?: string) {
     // If not in layout, add it
     if (!layout[widgetId]) {
       const spot = findEmptySpot(layout, 6, 6)
+      const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
       if (!spot) {
-        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 6, rowSpan: 6 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 6, rowSpan: 6, zIndex: maxZ + 1 } }))
       } else {
-        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 6, rowSpan: 6 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 6, rowSpan: 6, zIndex: maxZ + 1 } }))
       }
     }
     
@@ -360,10 +399,11 @@ export function useGridLayout(pageId?: string) {
     // If not in layout, add it
     if (!layout[widgetId]) {
       const spot = findEmptySpot(layout, 3, 4)
+      const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
       if (!spot) {
-        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 4 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 4, zIndex: maxZ + 1 } }))
       } else {
-        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 4 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 4, zIndex: maxZ + 1 } }))
       }
     }
     
@@ -373,12 +413,13 @@ export function useGridLayout(pageId?: string) {
   const addImageWidget = useCallback(() => {
     const widgetId = `image-${Date.now()}`
     const spot = findEmptySpot(layout, 2, 2)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
 
     if (!spot) {
       // Grid is full, place at 0,0 anyway (will overlap)
-      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
     } else {
-      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
     }
 
     setImageWidgets((prev) => ({ ...prev, [widgetId]: '' }))
@@ -460,7 +501,9 @@ export function useGridLayout(pageId?: string) {
     updateImageWidget, 
     updateStaticContent, 
     deleteWidget, 
-    resetLayout, 
+    resetLayout,
+    bringToFront,
+    sendToBack, 
     isLoaded 
   }
 }

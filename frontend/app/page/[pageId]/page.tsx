@@ -29,7 +29,9 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
     addDailyEventsWidget, 
     updateTextWidget,
     updateImageWidget, 
-    deleteWidget, 
+    deleteWidget,
+    bringToFront,
+    sendToBack, 
     resetLayout, 
     isLoaded 
   } = useGridLayout(pageId);
@@ -130,6 +132,8 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
         moveWidget={moveWidget}
         resizeWidget={resizeWidget}
         deleteWidget={deleteWidget}
+        bringToFront={bringToFront}
+        sendToBack={sendToBack}
         resetLayout={resetLayout}
         isLoaded={isLoaded}
       />

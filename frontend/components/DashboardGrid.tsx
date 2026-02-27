@@ -17,13 +17,15 @@ interface DashboardGridProps {
   moveWidget: (widgetId: string, col: number, row: number) => void
   resizeWidget: (widgetId: string, colSpan: number, rowSpan: number) => void
   deleteWidget: (widgetId: string) => void
+  bringToFront: (widgetId: string) => void
+  sendToBack: (widgetId: string) => void
   resetLayout: () => void
   isLoaded: boolean
 }
 
 type InteractionMode = 'drag' | 'resize' | null
 
-export function DashboardGrid({ widgets, layout, moveWidget, resizeWidget, deleteWidget, resetLayout, isLoaded }: DashboardGridProps) {
+export function DashboardGrid({ widgets, layout, moveWidget, resizeWidget, deleteWidget, bringToFront, sendToBack, resetLayout, isLoaded }: DashboardGridProps) {
   const gridRef = useRef<HTMLDivElement>(null)
 
   // Shared interaction state
@@ -249,11 +251,18 @@ export function DashboardGrid({ widgets, layout, moveWidget, resizeWidget, delet
               transition={{
                 layout: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const },
               }}
-              className="relative z-10 rounded-lg overflow-hidden group/widget"
+              className="relative rounded-lg overflow-hidden group/widget"
               style={{
                 gridColumn: `${pos.col + 1} / ${pos.col + 1 + pos.colSpan}`,
                 gridRow: `${pos.row + 1} / ${pos.row + 1 + pos.rowSpan}`,
                 opacity: isActive ? 0.5 : 1,
+                zIndex: pos.zIndex,
+              }}
+              onClick={() => {
+                // Bring to front when clicked
+                if (!isActive) {
+                  bringToFront(widget.id)
+                }
               }}
             >
               <div className="relative h-full">
@@ -300,6 +309,54 @@ export function DashboardGrid({ widgets, layout, moveWidget, resizeWidget, delet
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
+
+                {/* Layer control buttons — top right, below delete button */}
+                <div className="absolute top-8 right-1 z-20 flex flex-col gap-0.5 opacity-0 group-hover/widget:opacity-100 transition-opacity duration-150">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      bringToFront(widget.id)
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="p-1 rounded-md"
+                    style={{ color: 'var(--text-muted)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--text-primary)'
+                      e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-muted)'
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }}
+                    title="Bring to front"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      sendToBack(widget.id)
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="p-1 rounded-md"
+                    style={{ color: 'var(--text-muted)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--text-primary)'
+                      e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-muted)'
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }}
+                    title="Send to back"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                    </svg>
+                  </button>
+                </div>
 
                 {/* Widget content */}
                 <div className="h-full p-4 overflow-auto">
