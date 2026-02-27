@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
 	Injectable,
 	InternalServerErrorException,
@@ -9,7 +7,7 @@ import bcrypt from 'bcrypt';
 
 import { DbService } from '../db/db.service';
 import { JwtService } from '../jwt/jwt.service';
-import { createUserDto } from './dto/createUser.dto';
+import { createUserDto } from './dto/CreateUser.dto';
 import { loginUserDto } from './dto/loginUser.dto';
 import { User } from '../common/entities/user.entity';
 import type { AuthenticatedRequest } from '../common/AuthenticatedRequest';
@@ -45,7 +43,7 @@ export class AuthService {
 		const user: User | null = await this.dbService.findOne(undefined, loginUserDto.username);
 
 		const comparisonHash = user ? user.password : '$2b$12$invalidhashinvalidhas$2b$12$invalidhashinvalidhas';
-		const isMatch = await bcrypt.compare(loginUserDto.password, comparisonHash) as boolean;
+		const isMatch = await bcrypt.compare(loginUserDto.password, comparisonHash);
 
 		if (!user || !isMatch) {
 			this.logger.warn(`Failed login attempt for username: ${loginUserDto.username}`, 'AuthService');
@@ -91,7 +89,7 @@ export class AuthService {
 			hashedPassword = await bcrypt.hash(
 				createUserDto.password,
 				saltRounds,
-			) as string;
+			);
 		} catch (error) {
 			this.logger.error('Password hashing failed during registration', (error as Error).stack, 'AuthService');
 			throw new InternalServerErrorException('Error while creating user');

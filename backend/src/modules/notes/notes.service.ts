@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -26,7 +25,7 @@ export class NotesService {
       metadata: dto.metadata ?? undefined,
     };
 
-    const note = this.noteRepository.create(payload as any);
+    const note = this.noteRepository.create(payload);
 
     return await this.noteRepository.save(note as any);
   }

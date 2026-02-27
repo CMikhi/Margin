@@ -9,21 +9,22 @@ export class HealthController {
 	* Root endpoint for API health check
 	* Checks the status of database and backend services
 	*/
-	@Get()
+	@Get('/health')
 	@HttpCode(HttpStatus.OK)
 	async getHealth() {
 		// Default to unhealthy, prove otherwise
 		let databaseStatus = 'unhealthy';
+		let dbLatency = null as number | null;
 		let backendStatus = 'unhealthy';
 
 		// TODO: Add logging - Log health check initiated
 		const start = Date.now();
-		const dbHealth = await this.dbService.healthCheck();
-		const dbLatency = Date.now() - start;
-		databaseStatus = dbLatency < 1000 && dbHealth ? 'healthy' : 'unhealthy';
 
 		// TODO: Add more service checks
 		try {
+			const dbHealth = await this.dbService.healthCheck();
+			dbLatency = Date.now() - start;
+			databaseStatus = dbLatency < 1000 && dbHealth ? 'healthy' : 'unhealthy';
 			backendStatus = 'healthy';
 		} catch {
 			backendStatus = 'unhealthy';
@@ -31,7 +32,7 @@ export class HealthController {
 		
 		// TODO: Move response formatting to DTO and use DTO in logging and return 
 		return {
-			message: "Template API",
+			message: "Margin API",
 			version: "1.0.0", // TODO: Dynamically pull version from package.json
 			database: {
 				status: databaseStatus,

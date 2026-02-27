@@ -4,16 +4,20 @@ import { AppModule } from "./modules/app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { LoggerService } from "./modules/common/logging/services/logger.service";
 import { LoggingInterceptor } from "./modules/common/logging/interceptors/logging.interceptor";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import {
+  DocumentBuilder,
+  SwaggerModule,
+  type OpenAPIObject,
+} from "@nestjs/swagger";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    bufferLogs: true,
-  });
+	const app = await NestFactory.create(AppModule);
 
-  const logger = app.get(LoggerService);
+  const logger = app.get<LoggerService>(LoggerService);
   app.useLogger(logger);
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
+	// Since Logging is in one file, break line twice to make it more visible in the logs when the application starts/restarts
+	logger.log("\n\nApplication starting...", "Bootstrap");
 
   /**
    * Enable CORS for all origins bc screw security
@@ -33,20 +37,16 @@ async function bootstrap() {
   // Swagger / OpenAPI setup
   const config = new DocumentBuilder()
     .setTitle("Margin API")
-    .setDescription(
-      "Margin backend API — auth, users, notes, calendar, widgets",
-    )
+    .setDescription("Margin backend API — auth, users, notes, calendar, widgets")
     .setVersion("1.0")
     .addBearerAuth(
       { type: "http", scheme: "bearer", bearerFormat: "JWT" },
-      "access-token",
+			"access-token",
     )
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, document, {
-    swaggerOptions: { persistAuthorization: true },
-  });
+  const document: OpenAPIObject = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api", app, document, {swaggerOptions: { persistAuthorization: true }});
 
   const port = process.env.PORT || 5200;
   const ip = "0.0.0.0";

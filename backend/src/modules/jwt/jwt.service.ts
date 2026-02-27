@@ -1,10 +1,8 @@
-// You can ignore these, eslint has a seizure when it sees good code
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { JwtService as NestJwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcrypt";
+import type { SignOptions } from "jsonwebtoken";
 
 export interface JwtPayload {
   sub: string; // userId
@@ -28,61 +26,68 @@ export class JwtService {
     return this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>("JWT_SECRET"), // Use symmetric secret
       algorithm: "HS256", // Switch to HS256
-      expiresIn: this.configService.get<string>("JWT_REFRESH_EXP", "7d"),
+      expiresIn: this.configService.get<string>(
+        "JWT_REFRESH_EXP",
+        "7d",
+      ) as unknown as SignOptions["expiresIn"],
     });
   }
 
   // Hash refresh tokens before storing in DB
   async hashToken(token: string): Promise<string> {
     try {
-      const salt: string = (await bcrypt.genSalt(10)) as string;
-      return bcrypt.hash(token, salt) as Promise<string>;
+      const salt: string = await bcrypt.genSalt(10);
+      return bcrypt.hash(token, salt);
     } catch {
       throw new InternalServerErrorException("Error processing token");
     }
   }
 
-  
   // ----- VALIDATION -----
   compareToken(token: string, hash: string): Promise<boolean> {
     try {
-      return bcrypt.compare(token, hash) as Promise<boolean>;
+      return bcrypt.compare(token, hash);
     } catch {
       throw new InternalServerErrorException("Error processing token");
     }
   }
-  
+
   /**
    * Verifies JWT tokens as either valid, expired, or invalid without throwing exceptions.
    * Useful for token rotation and refresh flows where we want to handle expired tokens gracefully.
    * NOTE: This will not return JWT payload
-   * 
-   * @param token The JWT token to verify 
+   *
+   * @param token The JWT token to verify
    * @returns True if valid, false if invalid or expired
-  */
+   */
   async verifyToken(token: string): Promise<boolean> {
-    return this.jwtService.verifyAsync<JwtPayload>(token).then(() => true).catch(() => false);
+    return this.jwtService
+      .verifyAsync<JwtPayload>(token)
+      .then(() => true)
+      .catch(() => false);
   }
-  
+
   /**
    * Returns a decoded JWT payload if the token is valid
    * Throws UnauthorizedException if the token is invalid or expired
-   * 
+   *
    * Similar to verifyToken but returns the decoded payload
-   * 
+   *
    * @param token The JWT token to verify and decode
    * @throws UnauthorizedException if token is invalid or expired
-   * @returns JwtPayload 
+   * @returns JwtPayload
    */
-  async verifyAndDecode<T extends object = JwtPayload>(token: string): Promise<T> {
+  async verifyAndDecode<T extends object = JwtPayload>(
+    token: string,
+  ): Promise<T> {
     return this.jwtService.verifyAsync<T>(token);
   }
 
   /**
-   * Extract Payload without validating signature 
-   * 
+   * Extract Payload without validating signature
+   *
    * NOTE: SHOULD NOT BE USED IN PRODUCTION CODE
-   * 
+   *
    * @deprecated
    * @param token The JWT token to decode
    * @returns JwtPayload

@@ -13,7 +13,7 @@ import { AuthService } from "./auth.service";
 import { BodyRequiredGuard } from "./guard/body-required.guard";
 import { JwtAuthGuard } from "./guard/jwt-auth.guard";
 import { RefreshUserTokensDto } from "./dto/refreshUserTokens.dto";
-import { createUserDto } from "./dto/createUser.dto";
+import { createUserDto } from "./dto/CreateUser.dto";
 import { loginUserDto } from "./dto/loginUser.dto";
 import type { AuthenticatedRequest } from "../common/AuthenticatedRequest";
 
