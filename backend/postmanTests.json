@@ -1,0 +1,936 @@
+{
+  "info": {
+    "name": "Margin Backend API",
+    "description": "Complete API testing collection for Margin NestJS backend with JWT authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "margin-backend"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5200",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_note_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_event_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Get API Health Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Backend is healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.backend.status).to.eql('healthy');",
+                  "});",
+                  "",
+                  "pm.test(\"Database is healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.database.status).to.eql('healthy');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check the health status of the API, database, and backend services"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register New User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has tokens\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('accessToken');",
+                  "    pm.expect(jsonData).to.have.property('refreshToken');",
+                  "    pm.expect(jsonData.token_type).to.eql('bearer');",
+                  "    ",
+                  "    // Save tokens for future requests",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test12345678!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has tokens\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('accessToken');",
+                  "    pm.expect(jsonData).to.have.property('refreshToken');",
+                  "    pm.expect(jsonData.token_type).to.eql('bearer');",
+                  "    ",
+                  "    // Save tokens for future requests",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test12345678!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with username and password to get JWT tokens"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User (Me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('username');",
+                  "    pm.expect(jsonData.data).to.have.property('role');",
+                  "    ",
+                  "    // Save user ID for other tests",
+                  "    pm.collectionVariables.set('test_user_id', jsonData.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get the currently authenticated user's information"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has new tokens\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('accessToken');",
+                  "    pm.expect(jsonData).to.have.property('refreshToken');",
+                  "    ",
+                  "    // Update tokens",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh the access token using a refresh token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users (Admin Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 403\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Response has users array\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.data).to.be.an('array');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            },
+            "description": "Get all users (requires ADMIN role)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.expect(jsonData).to.have.property('role');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Get current authenticated user's information"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"User updated successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"updatedusername\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{test_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{test_user_id}}"]
+            },
+            "description": "Update user information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User (Admin Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204 or 403\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{test_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{test_user_id}}"]
+            },
+            "description": "Delete a user (requires ADMIN role)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "Get My Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has role\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('role');",
+                  "    pm.expect(jsonData.message).to.include('Role retrieved');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/roles/me",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "me"]
+            },
+            "description": "Get the current user's role"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Role by UUID (Admin Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 403\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Response has role\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('role');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/roles/{{test_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "{{test_user_id}}"]
+            },
+            "description": "Get a user's role by UUID (requires ADMIN role)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notes",
+      "item": [
+        {
+          "name": "Create Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Note created successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('content');",
+                  "    ",
+                  "    // Save note ID for other tests",
+                  "    pm.collectionVariables.set('test_note_id', jsonData.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"This is a test note from Postman\",\n  \"tags\": [\"test\", \"postman\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notes",
+              "host": ["{{base_url}}"],
+              "path": ["notes"]
+            },
+            "description": "Create a new note"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Notes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has notes array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notes?limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["notes"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get all notes with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Note by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has note data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notes/{{test_note_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["notes", "{{test_note_id}}"]
+            },
+            "description": "Get a specific note by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Note updated successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data.content).to.include('updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"This is an updated note from Postman\",\n  \"tags\": [\"updated\", \"test\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notes/{{test_note_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["notes", "{{test_note_id}}"]
+            },
+            "description": "Update an existing note"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Note deleted successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('ok');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notes/{{test_note_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["notes", "{{test_note_id}}"]
+            },
+            "description": "Delete a note"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Calendar",
+      "item": [
+        {
+          "name": "Create Calendar Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Event created successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('title');",
+                  "    ",
+                  "    // Save event ID for other tests",
+                  "    pm.collectionVariables.set('test_event_id', jsonData.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Meeting\",\n  \"description\": \"Testing calendar events from Postman\",\n  \"start\": \"2026-03-15T10:00:00Z\",\n  \"end\": \"2026-03-15T11:00:00Z\",\n  \"allDay\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/calendar",
+              "host": ["{{base_url}}"],
+              "path": ["calendar"]
+            },
+            "description": "Create a new calendar event"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Calendar Events in Range",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has events array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calendar?start=2026-03-01T00:00:00Z&end=2026-03-31T23:59:59Z",
+              "host": ["{{base_url}}"],
+              "path": ["calendar"],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2026-03-01T00:00:00Z"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-03-31T23:59:59Z"
+                }
+              ]
+            },
+            "description": "Get calendar events within a date range"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Calendar Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Event updated successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data.title).to.include('Updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Test Meeting\",\n  \"description\": \"Updated description from Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/calendar/{{test_event_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["calendar", "{{test_event_id}}"]
+            },
+            "description": "Update an existing calendar event"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Calendar Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calendar/{{test_event_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["calendar", "{{test_event_id}}"]
+            },
+            "description": "Delete a calendar event"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Widgets",
+      "item": [
+        {
+          "name": "Get All Widgets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has widgets array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["widgets"]
+            },
+            "description": "Get all widget placements for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Replace Widgets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Widgets updated successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"widgets\": [\n    {\n      \"widgetType\": \"calendar\",\n      \"x\": 0,\n      \"y\": 0,\n      \"w\": 6,\n      \"h\": 4,\n      \"config\": {}\n    },\n    {\n      \"widgetType\": \"notes\",\n      \"x\": 6,\n      \"y\": 0,\n      \"w\": 6,\n      \"h\": 4,\n      \"config\": {}\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/widgets",
+              "host": ["{{base_url}}"],
+              "path": ["widgets"]
+            },
+            "description": "Replace all widget placements for the current user"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

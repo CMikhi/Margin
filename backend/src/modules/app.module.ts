@@ -23,10 +23,22 @@ import { CommonModule } from "./common/common.module";
       envFilePath: ["./src/.env.production", "./src/.env", "./.env"],
     }),
     TypeOrmModule.forRoot({
-      type: "sqlite",
-      database: process.env.DATABASE_PATH || "./database.db", // Use repo root database for compatibility
+      type: "postgres",
+      host: process.env.DB_HOST || "localhost",
+      port: parseInt(process.env.DB_PORT || '5432'),
+      username: process.env.DB_USERNAME || "postgres",
+      password: process.env.DB_PASSWORD || "postgres",
+      database: process.env.DB_NAME || "margin_dev",
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== "production",
+      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+      logging: process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
+      extra: {
+        max: 20,
+        min: 5,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      }
     }),
     CalendarModule,
     NotesModule,

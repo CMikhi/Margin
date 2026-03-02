@@ -7,8 +7,6 @@ import {
   Param,
   UseGuards,
   Request,
-  Patch,
-  Body,
 } from "@nestjs/common";
 import { RolesService } from "./roles.service";
 import { JwtAuthGuard } from "../auth/guard/jwt-auth.guard";
@@ -22,22 +20,11 @@ import type { AuthenticatedRequest } from "../common/AuthenticatedRequest";
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  @Get(":uuid")
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN) // Only admins can view roles
-  @HttpCode(HttpStatus.OK)
-  async getRole(@Param("uuid") uuid: string): Promise<{ message: string; role: string }> {
-    const role = await this.rolesService.getRole(uuid);
-    if (!role) throw new NotFoundException({ message: "User not found" });
-    return {
-      message: "Role retrieved successfully",
-      role: role,
-    };
-  }
-  
   @Get("me")
   @HttpCode(HttpStatus.OK)
-  async getUserRole(@Request() req: AuthenticatedRequest): Promise<{ message: string; role: string }> {
+  async getUserRole(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<{ message: string; role: string }> {
     const role = await this.rolesService.getRole(req.user.id);
     if (!role) throw new NotFoundException({ message: "User not found" });
     return {
@@ -45,17 +32,33 @@ export class RolesController {
       role: role,
     };
   }
-  
-  // Deprecated endpoint for updating user roles,
-  // Will be re-enabled after refactoring for admin role escalation 
-  
-  @Patch(":uuid")
+
+  @Get(":uuid")
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @HttpCode(HttpStatus.GONE)
-  updateUser() {
+  @Roles(UserRole.ADMIN) // Only admins can view roles
+  @HttpCode(HttpStatus.OK)
+  async getRole(
+    @Param("uuid") uuid: string,
+  ): Promise<{ message: string; role: string }> {
+    const role = await this.rolesService.getRole(uuid);
+    if (!role) throw new NotFoundException({ message: "User not found" });
     return {
-      message: "This route is deprecated and will not be re-enabled until further notice"
-    }
+      message: "Role retrieved successfully",
+      role: role,
+    };
   }
+
+  // Deprecated endpoint for updating user roles,
+  // Will be re-enabled after refactoring for admin role escalation
+
+//   @Patch(":uuid")
+//   @UseGuards(RolesGuard)
+//   @Roles(UserRole.ADMIN)
+//   @HttpCode(HttpStatus.GONE)
+//   updateUser() {
+//     return {
+//       message:
+//         "This route is deprecated and will not be re-enabled until further notice",
+//     };
+//   }
 }

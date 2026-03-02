@@ -27,6 +27,9 @@ export class DbService {
 	async healthCheck(): Promise<boolean> {
 		try {
 			await this.userRepository.query('SELECT 1');
+
+			await this.userRepository.query('SELECT version()');
+
 			return true;
 		} catch {
 			return false;

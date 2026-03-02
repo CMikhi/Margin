@@ -7,7 +7,7 @@
 [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![SQLite](https://img.shields.io/badge/SQLite-3.x-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Jest](https://img.shields.io/badge/Jest-30.x-C21325?style=for-the-badge&logo=jest&logoColor=white)](https://jestjs.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
@@ -63,7 +63,7 @@
 | **Framework** | [NestJS 11](https://nestjs.com) |
 | **Language** | [TypeScript 5.7](https://www.typescriptlang.org) |
 | **ORM** | [TypeORM 0.3](https://typeorm.io) |
-| **Database** | [SQLite](https://sqlite.org) (swappable) |
+| **Database** | [PostgreSQL](https://postgresql.org) (swappable) |
 | **Auth** | [@nestjs/jwt](https://github.com/nestjs/jwt) + [bcrypt](https://www.npmjs.com/package/bcrypt) |
 | **Validation** | [class-validator](https://github.com/typestack/class-validator) + [class-transformer](https://github.com/typestack/class-transformer) |
 | **WebSockets** | [Socket.io 4](https://socket.io) |
@@ -325,6 +325,11 @@ Create a `.env` file in the project root. The application reads all config via `
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `PORT` | No | `5200` | HTTP server port |
+| `DB_HOST` | No | `localhost` | PostgreSQL host |
+| `DB_PORT` | No | `5432` | PostgreSQL port |
+| `DB_USERNAME` | No | `postgres` | PostgreSQL username |
+| `DB_PASSWORD` | **Yes** | — | PostgreSQL password |
+| `DB_NAME` | No | `margin_dev` | PostgreSQL database name |
 | `JWT_SECRET` | **Yes** | — | Secret key for signing access tokens |
 | `JWT_EXPIRATION` | No | `15m` | Access token TTL (e.g., `15m`, `1h`) |
 | `JWT_REFRESH_EXP` | No | `7d` | Refresh token TTL (e.g., `7d`, `30d`) |
