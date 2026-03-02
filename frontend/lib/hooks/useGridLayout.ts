@@ -5,6 +5,7 @@ export interface WidgetPosition {
   row: number   // 0-based row index
   colSpan: number
   rowSpan: number
+  zIndex: number // layering order (higher = on top)
 }
 
 export interface WidgetLayout {
@@ -24,6 +25,10 @@ export interface ImageWidgetsMap {
   [widgetId: string]: string // widgetId -> image src (base64)
 }
 
+export interface CanvasWidgetsMap {
+  [widgetId: string]: string // widgetId -> serialised Fabric JSON
+}
+
 export const GRID_COLS = 8
 export const GRID_ROWS = 8
 
@@ -33,20 +38,20 @@ const HOME_DEFAULT_WELCOME_HTML = `<h1>Margin</h1><h2>Welcome to Margin!</h2><p>
 function getDefaultLayout(pageId?: string): WidgetLayout {
   if (pageId === 'calendar-page') {
     return {
-      calendar: { col: 0, row: 0, colSpan: 8, rowSpan: 8 },
+      calendar: { col: 0, row: 0, colSpan: 8, rowSpan: 8, zIndex: 0 },
     }
   }
   if (pageId) {
     return {
-      welcome: { col: 1, row: 1, colSpan: 6, rowSpan: 4 },
+      welcome: { col: 1, row: 1, colSpan: 6, rowSpan: 4, zIndex: 0 },
     }
   }
   // Home page
   return {
-    'image-default-cat': { col: 0, row: 0, colSpan: 1, rowSpan: 2 },
-    quickLinks: { col: 0, row: 2, colSpan: 1, rowSpan: 2 },
-    'text-default-welcome': { col: 1, row: 0, colSpan: 6, rowSpan: 8 },
-    'image-default-bookmark': { col: 7, row: 0, colSpan: 1, rowSpan: 8 },
+    'image-default-cat': { col: 0, row: 0, colSpan: 1, rowSpan: 2, zIndex: 0 },
+    quickLinks: { col: 0, row: 2, colSpan: 1, rowSpan: 2, zIndex: 1 },
+    'text-default-welcome': { col: 1, row: 0, colSpan: 6, rowSpan: 8, zIndex: 2 },
+    'image-default-bookmark': { col: 7, row: 0, colSpan: 1, rowSpan: 8, zIndex: 3 },
   }
 }
 
@@ -156,6 +161,25 @@ function saveStaticContent(content: TextWidgetsMap, pageId?: string): void {
   }
 }
 
+function loadCanvasWidgets(pageId?: string): CanvasWidgetsMap | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const stored = localStorage.getItem(getStorageKey('margin-canvas-widgets', pageId))
+    return stored ? JSON.parse(stored) : null
+  } catch {
+    return null
+  }
+}
+
+function saveCanvasWidgets(canvasWidgets: CanvasWidgetsMap, pageId?: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(getStorageKey('margin-canvas-widgets', pageId), JSON.stringify(canvasWidgets))
+  } catch {
+    // ignore
+  }
+}
+
 /**
  * Check if a position would overlap with any other widget (excluding the one being moved)
  */
@@ -201,7 +225,7 @@ function clampPosition(pos: WidgetPosition): WidgetPosition {
 function findEmptySpot(layout: WidgetLayout, colSpan: number, rowSpan: number): { col: number; row: number } | null {
   for (let row = 0; row <= GRID_ROWS - rowSpan; row++) {
     for (let col = 0; col <= GRID_COLS - colSpan; col++) {
-      const testPos: WidgetPosition = { col, row, colSpan, rowSpan }
+      const testPos: WidgetPosition = { col, row, colSpan, rowSpan, zIndex: 0 }
       if (!hasOverlap(layout, '__test__', testPos)) {
         return { col, row }
       }
@@ -215,6 +239,7 @@ export function useGridLayout(pageId?: string) {
   const [textWidgets, setTextWidgets] = useState<TextWidgetsMap>(() => getDefaultTextWidgets(pageId))
   const [imageWidgets, setImageWidgets] = useState<ImageWidgetsMap>(() => getDefaultImageWidgets(pageId))
   const [staticContent, setStaticContent] = useState<TextWidgetsMap>({})
+  const [canvasWidgets, setCanvasWidgets] = useState<CanvasWidgetsMap>({})
   const [hiddenWidgets, setHiddenWidgets] = useState<Set<string>>(() => new Set(getDefaultHiddenWidgets(pageId)))
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -227,7 +252,16 @@ export function useGridLayout(pageId?: string) {
     const storedStatic = loadStaticContent(pageId)
 
     if (storedLayout) {
-      setLayout(storedLayout)
+      // Migrate old layouts that don't have zIndex
+      const migratedLayout: WidgetLayout = {}
+      let nextZIndex = 0
+      for (const [id, pos] of Object.entries(storedLayout)) {
+        migratedLayout[id] = {
+          ...pos,
+          zIndex: pos.zIndex ?? nextZIndex++
+        }
+      }
+      setLayout(migratedLayout)
     } else {
       setLayout(defaults)
     }
@@ -243,6 +277,11 @@ export function useGridLayout(pageId?: string) {
     }
     if (storedStatic) {
       setStaticContent(storedStatic)
+    }
+
+    const storedCanvas = loadCanvasWidgets(pageId)
+    if (storedCanvas) {
+      setCanvasWidgets(storedCanvas)
     }
     
     // Load hidden widgets or use defaults
@@ -268,8 +307,69 @@ export function useGridLayout(pageId?: string) {
       saveTextWidgets(textWidgets, pageId)
       saveImageWidgets(imageWidgets, pageId)
       saveStaticContent(staticContent, pageId)
+      saveCanvasWidgets(canvasWidgets, pageId)
     }
-  }, [layout, textWidgets, imageWidgets, staticContent, isLoaded, pageId])
+  }, [layout, textWidgets, imageWidgets, staticContent, canvasWidgets, isLoaded, pageId])
+
+  // Move widget one layer up (swap with next higher layer)
+  const bringToFront = useCallback((widgetId: string) => {
+    setLayout((prev) => {
+      const widget = prev[widgetId]
+      if (!widget) return prev
+      
+      // Get all z-indices sorted
+      const allZIndices = Object.values(prev).map(pos => pos.zIndex).sort((a, b) => a - b)
+      const uniqueZIndices = [...new Set(allZIndices)]
+      
+      // Find the next higher z-index
+      const nextHigherZ = uniqueZIndices.find(z => z > widget.zIndex)
+      
+      // If no higher layer exists, widget is already on top
+      if (nextHigherZ === undefined) return prev
+      
+      // Find the widget(s) at the next higher layer and swap z-indices
+      const newLayout = { ...prev }
+      for (const [id, pos] of Object.entries(prev)) {
+        if (id === widgetId) {
+          newLayout[id] = { ...pos, zIndex: nextHigherZ }
+        } else if (pos.zIndex === nextHigherZ) {
+          newLayout[id] = { ...pos, zIndex: widget.zIndex }
+        }
+      }
+      
+      return newLayout
+    })
+  }, [])
+
+  // Move widget one layer down (swap with next lower layer)
+  const sendToBack = useCallback((widgetId: string) => {
+    setLayout((prev) => {
+      const widget = prev[widgetId]
+      if (!widget) return prev
+      
+      // Get all z-indices sorted
+      const allZIndices = Object.values(prev).map(pos => pos.zIndex).sort((a, b) => a - b)
+      const uniqueZIndices = [...new Set(allZIndices)]
+      
+      // Find the next lower z-index
+      const nextLowerZ = [...uniqueZIndices].reverse().find(z => z < widget.zIndex)
+      
+      // If no lower layer exists, widget is already at bottom
+      if (nextLowerZ === undefined) return prev
+      
+      // Find the widget(s) at the next lower layer and swap z-indices
+      const newLayout = { ...prev }
+      for (const [id, pos] of Object.entries(prev)) {
+        if (id === widgetId) {
+          newLayout[id] = { ...pos, zIndex: nextLowerZ }
+        } else if (pos.zIndex === nextLowerZ) {
+          newLayout[id] = { ...pos, zIndex: widget.zIndex }
+        }
+      }
+      
+      return newLayout
+    })
+  }, [])
 
   const moveWidget = useCallback(
     (widgetId: string, newCol: number, newRow: number) => {
@@ -312,12 +412,13 @@ export function useGridLayout(pageId?: string) {
   const addTextWidget = useCallback(() => {
     const widgetId = `text-${Date.now()}`
     const spot = findEmptySpot(layout, 3, 2)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
 
     if (!spot) {
       // Grid is full, place at 0,0 anyway (will overlap)
-      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 2, zIndex: maxZ + 1 } }))
     } else {
-      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 2, zIndex: maxZ + 1 } }))
     }
 
     setTextWidgets((prev) => ({ ...prev, [widgetId]: 'Click to edit...' }))
@@ -337,10 +438,11 @@ export function useGridLayout(pageId?: string) {
     // If not in layout, add it
     if (!layout[widgetId]) {
       const spot = findEmptySpot(layout, 6, 6)
+      const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
       if (!spot) {
-        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 6, rowSpan: 6 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 6, rowSpan: 6, zIndex: maxZ + 1 } }))
       } else {
-        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 6, rowSpan: 6 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 6, rowSpan: 6, zIndex: maxZ + 1 } }))
       }
     }
     
@@ -360,10 +462,11 @@ export function useGridLayout(pageId?: string) {
     // If not in layout, add it
     if (!layout[widgetId]) {
       const spot = findEmptySpot(layout, 3, 4)
+      const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
       if (!spot) {
-        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 4 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 3, rowSpan: 4, zIndex: maxZ + 1 } }))
       } else {
-        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 4 } }))
+        setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 3, rowSpan: 4, zIndex: maxZ + 1 } }))
       }
     }
     
@@ -373,12 +476,13 @@ export function useGridLayout(pageId?: string) {
   const addImageWidget = useCallback(() => {
     const widgetId = `image-${Date.now()}`
     const spot = findEmptySpot(layout, 2, 2)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
 
     if (!spot) {
       // Grid is full, place at 0,0 anyway (will overlap)
-      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
     } else {
-      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2 } }))
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
     }
 
     setImageWidgets((prev) => ({ ...prev, [widgetId]: '' }))
@@ -396,6 +500,38 @@ export function useGridLayout(pageId?: string) {
   const updateImageWidget = useCallback((widgetId: string, imageSrc: string) => {
     setImageWidgets((prev) => ({ ...prev, [widgetId]: imageSrc }))
   }, [])
+
+  const updateCanvasWidget = useCallback((widgetId: string, json: string) => {
+    setCanvasWidgets((prev) => ({ ...prev, [widgetId]: json }))
+  }, [])
+
+  const addStickyDrawing = useCallback(() => {
+    const widgetId = `sticky-drawing-${Date.now()}`
+    const spot = findEmptySpot(layout, 2, 2)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
+
+    if (!spot) {
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
+    } else {
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 2, rowSpan: 2, zIndex: maxZ + 1 } }))
+    }
+    setCanvasWidgets((prev) => ({ ...prev, [widgetId]: '' }))
+    return widgetId
+  }, [layout])
+
+  const addFullCanvas = useCallback(() => {
+    const widgetId = `canvas-${Date.now()}`
+    const spot = findEmptySpot(layout, 4, 4)
+    const maxZ = Math.max(0, ...Object.values(layout).map(pos => pos.zIndex))
+
+    if (!spot) {
+      setLayout((prev) => ({ ...prev, [widgetId]: { col: 0, row: 0, colSpan: 4, rowSpan: 4, zIndex: maxZ + 1 } }))
+    } else {
+      setLayout((prev) => ({ ...prev, [widgetId]: { ...spot, colSpan: 4, rowSpan: 4, zIndex: maxZ + 1 } }))
+    }
+    setCanvasWidgets((prev) => ({ ...prev, [widgetId]: '' }))
+    return widgetId
+  }, [layout])
 
   const deleteWidget = useCallback((widgetId: string) => {
     // If it's a text widget, remove from layout and textWidgets
@@ -422,6 +558,18 @@ export function useGridLayout(pageId?: string) {
         delete newImages[widgetId]
         return newImages
       })
+    } else if (widgetId.startsWith('sticky-drawing-') || widgetId.startsWith('canvas-')) {
+      // Canvas widgets — remove from layout and canvasWidgets
+      setLayout((prev) => {
+        const newLayout = { ...prev }
+        delete newLayout[widgetId]
+        return newLayout
+      })
+      setCanvasWidgets((prev) => {
+        const newCanvas = { ...prev }
+        delete newCanvas[widgetId]
+        return newCanvas
+      })
     } else {
       // For static widgets, add to hidden set
       setHiddenWidgets((prev) => {
@@ -438,6 +586,7 @@ export function useGridLayout(pageId?: string) {
     setLayout(getDefaultLayout(pageId))
     setTextWidgets(getDefaultTextWidgets(pageId))
     setImageWidgets(getDefaultImageWidgets(pageId))
+    setCanvasWidgets({})
     setHiddenWidgets(new Set(defaultHidden))
     if (typeof window !== 'undefined') {
       localStorage.setItem(getStorageKey('margin-hidden-widgets', pageId), JSON.stringify(defaultHidden))
@@ -448,6 +597,7 @@ export function useGridLayout(pageId?: string) {
     layout, 
     textWidgets, 
     imageWidgets, 
+    canvasWidgets,
     staticContent, 
     hiddenWidgets, 
     moveWidget, 
@@ -456,11 +606,16 @@ export function useGridLayout(pageId?: string) {
     addImageWidget, 
     addCalendarWidget,
     addDailyEventsWidget,
+    addStickyDrawing,
+    addFullCanvas,
     updateTextWidget, 
     updateImageWidget, 
+    updateCanvasWidget,
     updateStaticContent, 
     deleteWidget, 
-    resetLayout, 
+    resetLayout,
+    bringToFront,
+    sendToBack, 
     isLoaded 
   }
 }

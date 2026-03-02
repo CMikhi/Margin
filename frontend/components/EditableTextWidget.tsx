@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { TipTapEditor } from './TipTapEditor'
+import { TipTapEditor } from '@/components/TipTapEditor'
 
 interface EditableTextWidgetProps {
   id: string

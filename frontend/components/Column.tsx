@@ -4,7 +4,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Task, TaskStatus } from '@/lib/types'
-import { TaskCard } from './TaskCard'
+import { TaskCard } from '@/components/TaskCard'
 
 interface ColumnProps {
   id: TaskStatus
