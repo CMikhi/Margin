@@ -54,7 +54,7 @@ export class RolesController {
 //   @Patch(":uuid")
 //   @UseGuards(RolesGuard)
 //   @Roles(UserRole.ADMIN)
-//   @HttpCode(HttpStatus.GONE)
+//   @HttpCode(HttpStatus.GONE)d
 //   updateUser() {
 //     return {
 //       message:
