@@ -14,19 +14,19 @@ export class WidgetPlacement {
   @Column({ length: 255 })
   widgetKey: string;
 
-  @Column('int')
+  @Column('integer')
   x: number;
 
-  @Column('int')
+  @Column('integer')
   y: number;
 
-  @Column('int')
+  @Column('integer')
   width: number;
 
-  @Column('int')
+  @Column('integer')
   height: number;
 
-  @Column('int', { default: 0 })
+  @Column('integer', { default: 0 })
   zIndex: number;
 
   @Column({ type: 'json', nullable: true })

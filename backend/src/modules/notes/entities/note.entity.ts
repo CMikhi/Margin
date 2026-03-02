@@ -16,7 +16,7 @@ export class Note {
   @Column('text')
   content: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
 
   @CreateDateColumn({ name: 'created_at' })
