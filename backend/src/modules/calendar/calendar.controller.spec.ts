@@ -32,7 +32,7 @@ describe("CalendarController", () => {
     };
     mockService.create.mockResolvedValue({ id: "e1", ...dto });
 
-    const res = await controller.create(req as any, dto as any);
+    const res = await controller.create(req, dto as any);
     expect(mockService.create).toHaveBeenCalledWith(req.user, dto);
     expect(res).toEqual({
       data: { id: "e1", title: "t", startAt: dto.startAt, endAt: dto.endAt },
@@ -43,7 +43,7 @@ describe("CalendarController", () => {
     const req = { user: { id: "u1" } } as any;
     mockService.findInRange.mockResolvedValue([]);
     const res = await controller.findInRange(
-      req as any,
+      req,
       "2026-01-01T00:00:00Z",
       "2026-02-01T00:00:00Z",
     );
@@ -59,7 +59,7 @@ describe("CalendarController", () => {
     const req = { user: { id: "u1" } } as any;
     const dto = { title: "updated" } as any;
     mockService.update.mockResolvedValue({ id: "e1", title: "updated" });
-    const res = await controller.update(req as any, "e1", dto);
+    const res = await controller.update(req, "e1", dto);
     expect(mockService.update).toHaveBeenCalledWith("u1", "e1", dto);
     expect(res).toEqual({ data: { id: "e1", title: "updated" } });
   });
@@ -67,7 +67,7 @@ describe("CalendarController", () => {
   it("remove returns ok", async () => {
     const req = { user: { id: "u1" } } as any;
     mockService.remove.mockResolvedValue(undefined);
-    const res = await controller.remove(req as any, "e1");
+    const res = await controller.remove(req, "e1");
     expect(mockService.remove).toHaveBeenCalledWith("u1", "e1");
     expect(res).toEqual({ status: "ok" });
   });

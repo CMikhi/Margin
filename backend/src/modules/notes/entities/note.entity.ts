@@ -1,27 +1,36 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
-import { User } from '../../common/entities/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from "typeorm";
+import { User } from "../../common/entities/user.entity";
 
-@Entity({ name: 'notes' })
-@Index('idx_notes_owner', ['owner'])
+@Entity({ name: "notes" })
+@Index("idx_notes_owner", ["owner"])
+@Index("gin_notes_metadata", ["metadata"]) // JSONB search - PostgreSQL will use GIN automatically for JSONB
 export class Note {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id?: string;
 
-  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { nullable: false, onDelete: "CASCADE" })
   owner: User;
 
-  @Column({ length: 255 })
+  @Column({ type: "text" })
   title: string;
 
-  @Column('text')
+  @Column({ type: "text" })
   content: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   metadata?: Record<string, any>;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ type: "timestamptz", name: "created_at" })
   createdAt?: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ type: "timestamptz", name: "updated_at" })
   updatedAt?: Date;
 }

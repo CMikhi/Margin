@@ -1,24 +1,39 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  Index,
+} from "typeorm";
 
-@Entity()
+@Entity({ name: "users" })
+@Index("idx_users_username", ["username"]) // Unique index already exists, but explicit is better
+@Index("idx_users_role", ["role"]) // For role-based queries
 export class User {
   // Auto-generated UUID primary key for the user entity
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id?: string;
 
   // TypeORM.save() will throw QueryFailedError on duplicate username
   @Column({ unique: true, length: 64 })
   username: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt?: Date;
 
-  @Column()
+  @Column({ length: 255 })
   password: string;
 
-  @Column({ default: 'user' })
+  @Column({
+    type: "enum",
+    enum: ["user", "admin", "moderator"],
+    default: "user",
+  })
   role: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 512, nullable: true })
   refreshTokenHash?: string;
+
+  @Column({ type: "timestamptz", nullable: true })
+  refreshTokenExpiresAt?: Date;
 }

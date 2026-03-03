@@ -37,7 +37,7 @@ describe("NotesController", () => {
   it("findAll returns list", async () => {
     const req = { user: { id: "u1" } } as any;
     mockService.findAll.mockResolvedValue([{ id: "n1" }]);
-    const res = await controller.findAll(req as any, 10, 0);
+    const res = await controller.findAll(req, 10, 0);
     expect(mockService.findAll).toHaveBeenCalledWith("u1", 10, 0);
     expect(res).toEqual({ data: [{ id: "n1" }] });
   });
@@ -45,7 +45,7 @@ describe("NotesController", () => {
   it("findOne returns note", async () => {
     const req = { user: { id: "u1" } } as any;
     mockService.findOne.mockResolvedValue({ id: "n1" });
-    const res = await controller.findOne(req as any, "n1");
+    const res = await controller.findOne(req, "n1");
     expect(mockService.findOne).toHaveBeenCalledWith("u1", "n1");
     expect(res).toEqual({ data: { id: "n1" } });
   });
@@ -54,7 +54,7 @@ describe("NotesController", () => {
     const req = { user: { id: "u1" } } as any;
     const dto = { title: "updated" } as any;
     mockService.update.mockResolvedValue({ id: "n1", title: "updated" });
-    const res = await controller.update(req as any, "n1", dto);
+    const res = await controller.update(req, "n1", dto);
     expect(mockService.update).toHaveBeenCalledWith("u1", "n1", dto);
     expect(res).toEqual({ data: { id: "n1", title: "updated" } });
   });
@@ -62,7 +62,7 @@ describe("NotesController", () => {
   it("remove returns ok", async () => {
     const req = { user: { id: "u1" } } as any;
     mockService.remove.mockResolvedValue(undefined);
-    const res = await controller.remove(req as any, "n1");
+    const res = await controller.remove(req, "n1");
     expect(mockService.remove).toHaveBeenCalledWith("u1", "n1");
     expect(res).toEqual({ status: "ok" });
   });

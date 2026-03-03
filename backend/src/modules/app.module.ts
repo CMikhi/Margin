@@ -34,10 +34,11 @@ import { CommonModule } from "./common/common.module";
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
       logging: process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
       extra: {
-        max: 20,
-        min: 5,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
+        max: 30,
+        min: 10,
+        idleTimeoutMillis: 60000,
+        connectionTimeoutMillis: 5000,
+        acquireTimeoutMillis: 10000,
       }
     }),
     CalendarModule,

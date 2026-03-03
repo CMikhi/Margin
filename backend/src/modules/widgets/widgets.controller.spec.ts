@@ -21,7 +21,7 @@ describe("WidgetsController", () => {
   it("findAll returns data", async () => {
     const req = { user: { id: "u1" } } as any;
     mockService.findAll.mockResolvedValue([{ id: "w1" }]);
-    const res = await controller.findAll(req as any);
+    const res = await controller.findAll(req);
     expect(mockService.findAll).toHaveBeenCalledWith("u1");
     expect(res).toEqual({ data: [{ id: "w1" }] });
   });
@@ -32,7 +32,7 @@ describe("WidgetsController", () => {
       widgets: [{ widgetKey: "w1", x: 0, y: 0, width: 1, height: 1 }],
     };
     mockService.bulkReplace.mockResolvedValue(dto.widgets);
-    const res = await controller.bulkReplace(req as any, dto as any);
+    const res = await controller.bulkReplace(req, dto as any);
     expect(mockService.bulkReplace).toHaveBeenCalledWith(req.user, dto);
     expect(res).toEqual({ data: dto.widgets });
   });

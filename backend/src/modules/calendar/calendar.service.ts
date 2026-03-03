@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Between } from "typeorm";
+import { Repository, Between, DeepPartial } from "typeorm";
 import { CalendarEvent } from "./entities/calendar-event.entity";
 import { CreateEventDto } from "./dto/create-event.dto";
 import { UpdateEventDto } from "./dto/update-event.dto";
@@ -36,8 +36,8 @@ export class CalendarService {
       recurrence: dto.recurrence ?? undefined,
     };
 
-    const ev = this.calendarRepository.create(payload as any);
-    return await this.calendarRepository.save(ev as any);
+    const ev = this.calendarRepository.create(payload as DeepPartial<CalendarEvent>);
+    return await this.calendarRepository.save(ev as Partial<CalendarEvent>);
   }
 
   async findInRange(
