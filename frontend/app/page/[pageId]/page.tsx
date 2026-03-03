@@ -1,31 +1,35 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo, use } from 'react';
-import { DashboardGrid } from '@/components/DashboardGrid';
-import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
-import { EditableTextWidget } from '@/components/EditableTextWidget';
-import { ImageWidget } from '@/components/ImageWidget';
-import { CalendarWidget } from '@/components/CalendarWidget';
-import { DailyEventsWidget } from '@/components/DailyEventsWidget';
-import { StickyDrawingWidget } from '@/components/StickyDrawingWidget';
-import { FullCanvasWidget } from '@/components/FullCanvasWidget';
-import { WelcomeWidget } from '@/components/WelcomeWidget';
-import { useGridLayout } from '@/lib/hooks/useGridLayout';
-import { loadCustomPages } from '@/lib/utils/storage';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, use } from "react";
+import { DashboardGrid } from "@/components/DashboardGrid";
+import { PageWithCommandMenu } from "@/components/PageWithCommandMenu";
+import { EditableTextWidget } from "@/components/EditableTextWidget";
+import { ImageWidget } from "@/components/ImageWidget";
+import { CalendarWidget } from "@/components/CalendarWidget";
+import { DailyEventsWidget } from "@/components/DailyEventsWidget";
+import { StickyDrawingWidget } from "@/components/StickyDrawingWidget";
+import { FullCanvasWidget } from "@/components/FullCanvasWidget";
+import { WelcomeWidget } from "@/components/WelcomeWidget";
+import { useGridLayoutBackend } from "@/lib/hooks/useGridLayoutBackend";
+import { loadCustomPages } from "@/lib/utils/storage";
+import { useRouter } from "next/navigation";
 
-export default function CustomPage({ params }: { params: Promise<{ pageId: string }> }) {
+export default function CustomPage({
+  params,
+}: {
+  params: Promise<{ pageId: string }>;
+}) {
   const router = useRouter();
   const { pageId } = use(params);
-  const [pageName, setPageName] = useState('');
-  const { 
-    layout, 
-    textWidgets, 
+  const [pageName, setPageName] = useState("");
+  const {
+    layout,
+    textWidgets,
     imageWidgets,
     canvasWidgets,
-    hiddenWidgets, 
-    moveWidget, 
-    resizeWidget, 
+    hiddenWidgets,
+    moveWidget,
+    resizeWidget,
     addTextWidget,
     addImageWidget,
     addCalendarWidget,
@@ -33,22 +37,22 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
     addStickyDrawing,
     addFullCanvas,
     updateTextWidget,
-    updateImageWidget, 
+    updateImageWidget,
     updateCanvasWidget,
-    deleteWidget, 
+    deleteWidget,
     bringToFront,
-    sendToBack, 
-    resetLayout, 
-    isLoaded 
-  } = useGridLayout(pageId);
+    sendToBack,
+    resetLayout,
+    isLoaded,
+  } = useGridLayoutBackend(pageId);
 
   // Check if page exists
   useEffect(() => {
     const pages = loadCustomPages();
-    const page = pages.find(p => p.id === pageId);
+    const page = pages.find((p) => p.id === pageId);
     if (!page) {
       // Page doesn't exist, redirect to home
-      router.push('/');
+      router.push("/");
     } else {
       setPageName(page.name);
     }
@@ -56,86 +60,92 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
 
   // Build dynamic widgets from textWidgets and imageWidgets
   const dynamicWidgets = useMemo(() => {
-    const textWidgetsList = Object.entries(textWidgets).map(([widgetId, text]) => ({
-      id: widgetId,
-      content: (
-        <EditableTextWidget
-          id={widgetId}
-          text={text}
-          onTextChange={updateTextWidget}
-          onDelete={deleteWidget}
-        />
-      ),
-    }));
-    
-    const imageWidgetsList = Object.entries(imageWidgets).map(([widgetId, imageSrc]) => ({
-      id: widgetId,
-      content: (
-        <ImageWidget
-          id={widgetId}
-          imageSrc={imageSrc}
-          onImageChange={updateImageWidget}
-          onDelete={deleteWidget}
-        />
-      ),
-    }));
+    const textWidgetsList = Object.entries(textWidgets).map(
+      ([widgetId, text]) => ({
+        id: widgetId,
+        content: (
+          <EditableTextWidget
+            id={widgetId}
+            text={text}
+            onTextChange={updateTextWidget}
+            onDelete={deleteWidget}
+          />
+        ),
+      }),
+    );
 
-    const canvasWidgetsList = Object.entries(canvasWidgets).map(([widgetId, data]) => ({
-      id: widgetId,
-      content: widgetId.startsWith('sticky-drawing-') ? (
-        <StickyDrawingWidget
-          id={widgetId}
-          initialData={data || undefined}
-          onDataChange={updateCanvasWidget}
-          onDelete={deleteWidget}
-        />
-      ) : (
-        <FullCanvasWidget
-          id={widgetId}
-          initialData={data || undefined}
-          onDataChange={updateCanvasWidget}
-          onDelete={deleteWidget}
-        />
-      ),
-    }));
-    
+    const imageWidgetsList = Object.entries(imageWidgets).map(
+      ([widgetId, imageSrc]) => ({
+        id: widgetId,
+        content: (
+          <ImageWidget
+            id={widgetId}
+            imageSrc={imageSrc}
+            onImageChange={updateImageWidget}
+            onDelete={deleteWidget}
+          />
+        ),
+      }),
+    );
+
+    const canvasWidgetsList = Object.entries(canvasWidgets).map(
+      ([widgetId, data]) => ({
+        id: widgetId,
+        content: widgetId.startsWith("sticky-drawing-") ? (
+          <StickyDrawingWidget
+            id={widgetId}
+            initialData={data || undefined}
+            onDataChange={updateCanvasWidget}
+            onDelete={deleteWidget}
+          />
+        ) : (
+          <FullCanvasWidget
+            id={widgetId}
+            initialData={data || undefined}
+            onDataChange={updateCanvasWidget}
+            onDelete={deleteWidget}
+          />
+        ),
+      }),
+    );
+
     return [...textWidgetsList, ...imageWidgetsList, ...canvasWidgetsList];
-  }, [textWidgets, imageWidgets, canvasWidgets, updateTextWidget, updateImageWidget, updateCanvasWidget, deleteWidget]);
+  }, [
+    textWidgets,
+    imageWidgets,
+    canvasWidgets,
+    updateTextWidget,
+    updateImageWidget,
+    updateCanvasWidget,
+    deleteWidget,
+  ]);
 
   const STATIC_WIDGETS = useMemo(() => {
     return [
       {
-        id: 'welcome',
+        id: "welcome",
         content: <WelcomeWidget />,
       },
       {
-        id: 'calendar',
+        id: "calendar",
         minColSpan: 4,
         minRowSpan: 4,
-        content: (
-          <CalendarWidget
-            id="calendar"
-            onDelete={deleteWidget}
-          />
-        ),
+        content: <CalendarWidget id="calendar" onDelete={deleteWidget} />,
       },
       {
-        id: 'dailyEvents',
+        id: "dailyEvents",
         minColSpan: 2,
         minRowSpan: 3,
-        content: (
-          <DailyEventsWidget
-            id="dailyEvents"
-            onDelete={deleteWidget}
-          />
-        ),
+        content: <DailyEventsWidget id="dailyEvents" onDelete={deleteWidget} />,
       },
     ];
   }, [deleteWidget]);
 
   const allWidgets = useMemo(() => {
     // Filter out hidden static widgets
-    const visibleStatic = STATIC_WIDGETS.filter(w => !hiddenWidgets.has(w.id));
+    const visibleStatic = STATIC_WIDGETS.filter(
+      (w) => !hiddenWidgets.has(w.id),
+    );
     return [...visibleStatic, ...dynamicWidgets];
   }, [STATIC_WIDGETS, dynamicWidgets, hiddenWidgets]);
 
@@ -144,7 +154,7 @@ export default function CustomPage({ params }: { params: Promise<{ pageId: strin
   }
 
   return (
-    <PageWithCommandMenu 
+    <PageWithCommandMenu
       pageTitle={pageName}
       onAddTextBox={addTextWidget}
       onAddImage={addImageWidget}

@@ -38,7 +38,7 @@ export class AuthController {
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @UseGuards(BodyRequiredGuard) // Checks input before hitting route
-  async login(@Body() loginUserDto: loginUserDto) {
+  async login(@Body() loginUserDto: loginUserDto): Promise<{ message: string; accessToken: string; refreshToken: string; user: { id: string; username: string; role: string }; token_type: string }> {
     const result = await this.authService.login(loginUserDto);
     return {
       ...result,
@@ -49,7 +49,7 @@ export class AuthController {
   @Post("register")
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(BodyRequiredGuard) // Checks input before hitting route
-  async register(@Body() createUserDto: createUserDto) {
+  async register(@Body() createUserDto: createUserDto ): Promise<{ message: string; accessToken: string; refreshToken: string; user: { id: string; username: string; role: string }; token_type: string }> {
     const result = await this.authService.register(createUserDto);
     return {
       ...result,
@@ -57,6 +57,14 @@ export class AuthController {
     };
   }
 
+  /**
+   * Refreshes the authentication tokens for a logged-in user
+   * 
+   * @param refreshTokenDto - The refresh token DTO containing the refresh token
+   * @param req - The authenticated request object containing user information
+   * @returns Promise resolving to refreshed tokens and user data with token type
+   * @throws UnauthorizedException if refresh token is invalid or expired
+   */
   @Patch("refresh")
   @HttpCode(HttpStatus.OK)
   @UseGuards(BodyRequiredGuard, JwtAuthGuard)
@@ -78,7 +86,7 @@ export class AuthController {
   @Get("me")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  getCurrentUser(@Request() req: AuthenticatedRequest) {
+  getCurrentUser(@Request() req: AuthenticatedRequest): { data: { id: string; username: string; role: string } } {
     return {
       data: {
         id: req.user.id,

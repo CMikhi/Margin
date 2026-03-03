@@ -1,11 +1,17 @@
-# Install the required stuff
+# Margin - Weekly Focus Board
+
+A customizable, modern productivity workspace with real-time sync capabilities.
+
+## 🚀 Quick Start
+
+### 1. Clone & Install
 
 ```bash
 git clone https://github.com/your-username/margin.git
 cd margin
 ```
 
-Run the program
+### 2. Frontend Setup
 
 ```bash
 cd frontend
@@ -15,26 +21,43 @@ npm run dev
 
 The app will be available at **`http://localhost:3000`**
 
-### 3. Backend Setup (Optional)
+### 3. Backend Setup (Required for Data Sync)
 
 ```bash
 cd backend
 npm install
 cp .env.example .env
-# Edit .env with your JWT secret
+# Edit .env with your database URL and JWT secrets
 npm run dev
 ```
 
 Backend runs at **`http://localhost:8080`**
 
-### 4. Configure Environment (Optional)
+### 4. Configure Environment
 
-For Supabase integration, create `frontend/.env.local`:
+Create `frontend/.env.local`:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+# Backend API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
+
+---
+
+## 🔄 Data Storage & Sync
+
+Margin now features **hybrid data storage**:
+
+- **🔐 Authenticated**: Data syncs to PostgreSQL backend, accessible across devices
+- **📱 Offline**: Works with localStorage, syncs when you sign in
+- **🔄 Real-time**: Changes sync automatically with smart debouncing
+- **💾 Backup**: Always saves to localStorage as fallback
+
+### Authentication
+
+- **Sign Up/In**: Click "Sign in to sync data" in the sidebar
+- **Multi-device**: Access your data on any device
+- **Offline-first**: Works without login, syncs when connected
 
 ---
 

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { PageWithCommandMenu } from '@/components/PageWithCommandMenu';
-import { DashboardGrid } from '@/components/DashboardGrid';
-import { CalendarWidget } from '@/components/CalendarWidget';
-import { DailyEventsWidget } from '@/components/DailyEventsWidget';
-import { EditableTextWidget } from '@/components/EditableTextWidget';
-import { ImageWidget } from '@/components/ImageWidget';
-import { StickyDrawingWidget } from '@/components/StickyDrawingWidget';
-import { FullCanvasWidget } from '@/components/FullCanvasWidget';
-import { useGridLayout } from '@/lib/hooks/useGridLayout';
-import { ReactNode } from 'react';
+import { PageWithCommandMenu } from "@/components/PageWithCommandMenu";
+import { DashboardGrid } from "@/components/DashboardGrid";
+import { CalendarWidget } from "@/components/CalendarWidget";
+import { DailyEventsWidget } from "@/components/DailyEventsWidget";
+import { EditableTextWidget } from "@/components/EditableTextWidget";
+import { ImageWidget } from "@/components/ImageWidget";
+import { StickyDrawingWidget } from "@/components/StickyDrawingWidget";
+import { FullCanvasWidget } from "@/components/FullCanvasWidget";
+import { useGridLayoutBackend } from "@/lib/hooks/useGridLayoutBackend";
+import { ReactNode } from "react";
 
 export default function CalendarPage() {
   const {
@@ -34,39 +34,34 @@ export default function CalendarPage() {
     sendToBack,
     resetLayout,
     isLoaded,
-  } = useGridLayout('calendar-page');
+  } = useGridLayoutBackend("calendar-page");
 
-  type LocalWidget = { id: string; minColSpan?: number; minRowSpan?: number; content: ReactNode };
+  type LocalWidget = {
+    id: string;
+    minColSpan?: number;
+    minRowSpan?: number;
+    content: ReactNode;
+  };
 
   const widgets: LocalWidget[] = [];
 
   // Calendar widget - takes up large portion of the screen
-  if (!hiddenWidgets.has('calendar')) {
+  if (!hiddenWidgets.has("calendar")) {
     widgets.push({
-      id: 'calendar',
+      id: "calendar",
       minColSpan: 4,
       minRowSpan: 4,
-      content: (
-        <CalendarWidget 
-          id="calendar" 
-          onDelete={deleteWidget}
-        />
-      ),
+      content: <CalendarWidget id="calendar" onDelete={deleteWidget} />,
     });
   }
 
   // Daily events widget - shows today's events
-  if (!hiddenWidgets.has('dailyEvents')) {
+  if (!hiddenWidgets.has("dailyEvents")) {
     widgets.push({
-      id: 'dailyEvents',
+      id: "dailyEvents",
       minColSpan: 2,
       minRowSpan: 3,
-      content: (
-        <DailyEventsWidget 
-          id="dailyEvents" 
-          onDelete={deleteWidget}
-        />
-      ),
+      content: <DailyEventsWidget id="dailyEvents" onDelete={deleteWidget} />,
     });
   }
 
@@ -110,7 +105,7 @@ export default function CalendarPage() {
       id: widgetId,
       minColSpan: 2,
       minRowSpan: 2,
-      content: widgetId.startsWith('sticky-drawing-') ? (
+      content: widgetId.startsWith("sticky-drawing-") ? (
         <StickyDrawingWidget
           id={widgetId}
           initialData={data || undefined}
@@ -149,8 +144,6 @@ export default function CalendarPage() {
         resetLayout={resetLayout}
         isLoaded={isLoaded}
       />
-      
     </PageWithCommandMenu>
   );
 }
-

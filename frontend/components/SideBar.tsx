@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { loadCustomPages, addCustomPage, deleteCustomPage } from '@/lib/utils/storage'
+import { useAuth } from '@/lib/hooks/useAuth'
+import AuthModal from './AuthModal'
 import type { CustomPage } from '@/lib/types'
 
 const sidebarVariants = {
@@ -32,11 +34,13 @@ const contentVariants = {
 export default function SideBar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { user, isAuthenticated, logout } = useAuth()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [customPages, setCustomPages] = useState<CustomPage[]>([])
   const [showNewPageInput, setShowNewPageInput] = useState(false)
   const [newPageName, setNewPageName] = useState('')
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   // Load custom pages on mount
   useEffect(() => {
@@ -63,11 +67,11 @@ export default function SideBar() {
   const handleDeletePage = useCallback((pageId: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (confirm('Are you sure you want to delete this page? All content will be lost.')) {
       deleteCustomPage(pageId)
       setCustomPages(loadCustomPages())
-      
+
       // If we're on the deleted page, redirect to home
       if (pathname === `/page/${pageId}`) {
         router.push('/')
@@ -164,6 +168,39 @@ export default function SideBar() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
               </svg>
             </motion.button>
+          </div>
+
+          {/* User Authentication Section */}
+          <div className="px-3 pb-2">
+            {isAuthenticated && user ? (
+              <div className="flex items-center justify-between p-2 rounded-md" style={{ backgroundColor: 'var(--bg-hover)' }}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                    {user.username[0].toUpperCase()}
+                  </div>
+                  <span className="text-xs text-(--text-secondary) truncate">{user.username}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="text-xs text-(--text-muted) hover:text-(--text-secondary) transition-colors"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="w-full p-2 rounded-md text-xs transition-colors"
+                style={{
+                  backgroundColor: 'var(--bg-hover)',
+                  color: 'var(--text-secondary)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-active)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+              >
+                Sign in to sync data
+              </button>
+            )}
           </div>
 
           {/* Navigation */}
@@ -299,7 +336,8 @@ export default function SideBar() {
         {/* Resize handle visual indicator */}
         <div className="absolute right-0 top-0 bottom-0 w-px" style={{ backgroundColor: 'var(--border-divider)' }} />
       </motion.aside>
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </>
   )
 }
-
