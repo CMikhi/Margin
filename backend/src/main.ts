@@ -52,6 +52,7 @@ async function bootstrap() {
   const ip = "0.0.0.0";
   await app.listen(port, ip);
   logger.log(`Server running on http://${ip}:${port}`, "Bootstrap");
+  logger.log(`Swagger docs available on http://${ip}:${port}/api`, "Bootstrap");
 }
 
 bootstrap().catch((err: unknown) => {

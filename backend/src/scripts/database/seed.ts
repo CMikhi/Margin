@@ -486,7 +486,10 @@ async function main() {
 
 // Run the seeding script
 if (require.main === module) {
-  main();
+  main().catch((err) => {
+    console.error("❌ Unhandled error during seeding:", err);
+    process.exit(1);
+  });
 }
 
 export { main as seedDatabase };
