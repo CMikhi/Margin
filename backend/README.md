@@ -673,10 +673,10 @@ TypeOrmModule.forRoot({
 Socket.io and `@nestjs/websockets` are pre-installed. To add a WebSocket gateway:
 
 ```bash
-nest generate gateway events
+nest generate gateway modules/events
 ```
 
-This will scaffold a gateway class in `src/events/` that you can extend with your real-time logic.
+This will scaffold a gateway class in `src/modules/events/` that you can extend with your real-time logic.
 
 ---
 
@@ -685,7 +685,7 @@ This will scaffold a gateway class in `src/events/` that you can extend with you
 Contributions are welcome! Please follow these steps:
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
+2. Create a feature branch: `git checkout -b feat/my-feature`
 3. Make your changes and add tests where appropriate
 4. Ensure all tests pass: `npm test`
 5. Lint your code: `npm run lint`
