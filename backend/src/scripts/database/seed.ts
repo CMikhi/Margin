@@ -60,7 +60,7 @@ async function seedUsers(): Promise<User[]> {
     {
       username: "janesmith", // Removed underscore to be alphanumeric only
       password: passwordHash,
-      role: "moderator",
+      role: "admin",
     },
     {
       username: "testuser", // Already compliant
