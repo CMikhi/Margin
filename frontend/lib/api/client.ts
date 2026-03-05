@@ -56,7 +56,14 @@ class ApiClient {
         throw new Error(errorData.message || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      // Handle endpoints that may legitimately return no content (e.g., 204).
+      const text = await response.text();
+      if (!text) {
+        // No body to parse; return an ApiResponse with undefined data.
+        return { data: undefined as T } as ApiResponse<T>;
+      }
+
+      const data = JSON.parse(text) as ApiResponse<T>;
       return data;
     } catch (error) {
       console.error("API request failed:", error);
