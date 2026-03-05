@@ -37,7 +37,6 @@ export function DailyEventsWidget({ id, onDelete }: DailyEventsWidgetProps) {
     events: allEvents,
     loading,
     createEvent,
-    updateEvent,
     deleteEvent: removeEvent,
   } = useCalendarStorage();
 
