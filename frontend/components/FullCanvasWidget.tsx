@@ -118,33 +118,6 @@ export function FullCanvasWidget({
     )
   }, [getCanvas])
 
-  // ── Debug logging ─────────────────────────────────────────
-  useEffect(() => {
-    console.log('[FullCanvasWidget] isReady changed:', isReady)
-    if (isReady) {
-      const canvas = getCanvas()
-      console.log('[FullCanvasWidget] canvas:', canvas)
-      console.log('[FullCanvasWidget] isDrawingMode:', canvas?.isDrawingMode)
-      console.log('[FullCanvasWidget] freeDrawingBrush:', canvas?.freeDrawingBrush)
-      console.log('[FullCanvasWidget] freeDrawingBrush color:', canvas?.freeDrawingBrush?.color)
-      console.log('[FullCanvasWidget] freeDrawingBrush width:', canvas?.freeDrawingBrush?.width)
-
-      const canvasEls = containerRef.current?.querySelectorAll('canvas')
-      console.log('[FullCanvasWidget] canvas elements in container:', canvasEls?.length)
-      canvasEls?.forEach((el, i) => {
-        const style = window.getComputedStyle(el)
-        console.log(`[FullCanvasWidget] canvas[${i}]:`, {
-          width: el.width, height: el.height,
-          cssWidth: style.width, cssHeight: style.height,
-          display: style.display, visibility: style.visibility,
-          pointerEvents: style.pointerEvents,
-          position: style.position,
-          zIndex: style.zIndex,
-        })
-      })
-    }
-  }, [isReady, getCanvas, containerRef])
-
   // ── Restore data once canvas is ready ───────────────────
   useEffect(() => {
     if (!isReady || hasRestored.current) return

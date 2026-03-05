@@ -14,7 +14,7 @@ import { User } from "../../common/entities/user.entity";
 @Index("idx_widgets_owner", ["owner"])
 @Index("idx_widgets_position", ["x", "y"]) // Spatial queries
 @Index("idx_widgets_z_index", ["zIndex"]) // Layer ordering
-@Index("gin_widgets_config", ["config"]) // JSONB search
+// @Index("gin_widgets_config", ["config"]) // REMOVED: JSONB search - caused size limit issues
 @Unique("uq_owner_widgetkey", ["owner", "widgetKey"])
 export class WidgetPlacement {
   @PrimaryGeneratedColumn("uuid")

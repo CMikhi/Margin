@@ -1,12 +1,8 @@
-import {
-  Injectable,
-  BadRequestException,
-} from "@nestjs/common";
+import { Injectable, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, DataSource } from "typeorm";
 import { WidgetPlacement } from "./entities/widget-placement.entity";
 import { BulkUpdateWidgetsDto } from "./dto/bulk-update-widgets.dto";
-import { WidgetPlacementDto } from "./dto/widget-placement.dto";
 import { User } from "../common/entities/user.entity";
 
 @Injectable()
@@ -20,9 +16,9 @@ export class WidgetsService {
   async findAll(userId: string): Promise<WidgetPlacement[]> {
     return await this.widgetRepo.find({ where: { owner: { id: userId } } });
   }
-
   /**
    * Replace all widget placements for a user in a single transaction
+   * Uses UPSERT approach to handle existing widgets gracefully
    */
   async bulkReplace(
     user: User,
@@ -42,29 +38,70 @@ export class WidgetsService {
       throw new BadRequestException(`Duplicate widgetKey in payload: ${dup}`);
 
     return await this.dataSource.transaction(async (manager) => {
-      // Delete existing explicitly by ownerId
-      await manager
-        .createQueryBuilder()
-        .delete()
-        .from(WidgetPlacement)
-        .where('"ownerId" = :userId', { userId: user.id })
-        .execute();
+      const widgetRepo = manager.getRepository(WidgetPlacement);
 
-      const entities = dto.widgets.map((w: WidgetPlacementDto) => {
-        return manager.create(WidgetPlacement, {
-          owner: user,
-          widgetKey: w.widgetKey,
-          x: w.x,
-          y: w.y,
-          width: w.width,
-          height: w.height,
-          zIndex: w.zIndex ?? 0,
-          config: w.config ?? undefined,
-        });
+      // First, delete all existing widgets for this user that are not in the new set
+      const existingWidgets = await widgetRepo.find({
+        where: { owner: { id: user.id } },
       });
 
-      const saved = await manager.save(entities);
-      return saved;
+      // Find widgets to delete (existing but not in new set)
+      const newWidgetKeys = dto.widgets.map((w) => w.widgetKey);
+      const widgetsToDelete = existingWidgets.filter(
+        (existing) => !newWidgetKeys.includes(existing.widgetKey),
+      );
+
+      if (widgetsToDelete.length > 0) {
+        const idsToDelete = widgetsToDelete
+          .map((w) => w.id)
+          .filter((id): id is string => !!id);
+
+        if (idsToDelete.length > 0) await widgetRepo.delete(idsToDelete);
+      }
+
+      // Now upsert the new widgets
+      const results: WidgetPlacement[] = [];
+
+      for (const widgetDto of dto.widgets) {
+        // Try to find existing widget
+        const existing = existingWidgets.find(
+          (w) => w.widgetKey === widgetDto.widgetKey,
+        );
+
+        if (existing && existing.id) {
+          // Update existing widget
+          await widgetRepo.update(existing.id, {
+            x: widgetDto.x,
+            y: widgetDto.y,
+            width: widgetDto.width,
+            height: widgetDto.height,
+            zIndex: widgetDto.zIndex ?? 0,
+            config: widgetDto.config ?? undefined,
+          });
+
+          // Fetch the updated widget
+          const updated = await widgetRepo.findOne({
+            where: { id: existing.id },
+          });
+          if (updated) results.push(updated);
+        } else {
+          // Create new widget
+          const newWidget = widgetRepo.create({
+            owner: user,
+            widgetKey: widgetDto.widgetKey,
+            x: widgetDto.x,
+            y: widgetDto.y,
+            width: widgetDto.width,
+            height: widgetDto.height,
+            zIndex: widgetDto.zIndex ?? 0,
+            config: widgetDto.config ?? undefined,
+          });
+
+          const saved = await widgetRepo.save(newWidget);
+          results.push(saved);
+        }
+      }
+      return results;
     });
   }
 }
