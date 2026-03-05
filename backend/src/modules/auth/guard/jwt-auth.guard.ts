@@ -42,7 +42,7 @@ export class JwtAuthGuard implements CanActivate {
     } else if (request.cookies?.access_token) {
       token = request.cookies.access_token;
     } else {
-      throw new UnauthorizedException("Authorization header is missing");
+      throw new UnauthorizedException("Authorization header or access_token cookie is missing");
     }
 
 
