@@ -1,14 +1,14 @@
-import { RolesModule } from "./roles/roles.module";
+import { ConfigModule } from "@nestjs/config";
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
+import { RolesModule } from "./roles/roles.module";
 import { JwtModule } from "./jwt/jwt.module";
 import { DbModule } from "./db/db.module";
 import { WidgetsModule } from "./widgets/widgets.module";
 import { NotesModule } from "./notes/notes.module";
 import { CalendarModule } from "./calendar/calendar.module";
-import { ConfigModule } from "@nestjs/config";
 import { CommonModule } from "./common/common.module";
 
 /** DO NOT DELETE
@@ -32,7 +32,7 @@ import { CommonModule } from "./common/common.module";
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== "production",
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-      logging: process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
+      logging: process.env.NODE_ENV === "development" ? ["error"] : [],
       extra: {
         max: 30,
         min: 10,
