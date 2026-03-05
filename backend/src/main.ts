@@ -9,6 +9,7 @@ import {
   SwaggerModule,
   type OpenAPIObject,
 } from "@nestjs/swagger";
+import cookieParser from "cookie-parser";
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -24,6 +25,7 @@ async function bootstrap() {
    *
    * TODO: In production, CORS would be restricted to frontend and other trusted origins
    */
+  app.use(cookieParser());
   app.enableCors({ origin: true, credentials: true });
 
   app.useGlobalPipes(

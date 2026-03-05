@@ -33,24 +33,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthState = async () => {
     try {
-      // First, check if we need to migrate tokens from localStorage to cookies
+      // Clean up any stale auth tokens that may have been stored in
+      // localStorage by earlier versions of the app.
       if (isMigrationNeeded()) {
         migrateTokensToCookies();
-        // Refresh the API client's token from cookies after migration
-        apiClient.refreshFromCookies();
       }
 
-      if (!apiClient.isAuthenticated()) {
-        setLoading(false);
-        return;
-      }
-
+      // Attempt to fetch the current user. The HttpOnly auth cookie is sent
+      // automatically by the browser; we don't need to check local storage.
       const currentUser = await apiClient.getCurrentUser();
       setUser(currentUser);
-    } catch (error) {
-      console.error("Failed to get current user:", error);
-      // Token might be invalid, clear it
-      apiClient.logout();
+    } catch {
+      // 401 / network error → not authenticated; leave user as null.
     } finally {
       setLoading(false);
     }
