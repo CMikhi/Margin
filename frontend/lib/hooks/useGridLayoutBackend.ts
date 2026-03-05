@@ -556,9 +556,16 @@ export function useGridLayoutBackend(pageId?: string) {
 
     let syncDelay: number;
     if (!isPageVisible) {
-      // Page not visible - sync less frequently (5 minutes max)
-      syncDelay = Math.min(300000, 5000); // 5s delay, but max 5min total
-      console.log("📴 Page not visible - delaying sync");
+      // Page not visible - sync less frequently, but don't exceed 5 minutes between syncs
+      const maxHiddenInterval = 300000; // 5 minutes
+      const minHiddenDelay = 5000; // at least 5s debounce
+
+      const timeUntilMax = maxHiddenInterval - timeSinceLastSync;
+      syncDelay = Math.max(
+        minHiddenDelay,
+        Math.min(maxHiddenInterval, timeUntilMax),
+      );
+      console.log("📴 Page not visible - delaying sync", { syncDelay });
     } else if (timeSinceLastSync < 5000) {
       // Recent sync - use normal debounce
       syncDelay = 1500;
