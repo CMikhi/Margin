@@ -29,14 +29,3 @@ export class createUserDto {
   @MaxLength(128, { message: "Password must be less than 128 characters" })
   password: string;
 }
-
-
-// message: "User registered successfully",
-//   accessToken,
-//   refreshToken,
-//   user: {
-//     id: user.id,
-//     username: user.username,
-//     role: user.role,
-//   },
-// };
