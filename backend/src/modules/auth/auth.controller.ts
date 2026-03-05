@@ -50,15 +50,6 @@ export class AuthController {
    * @param loginUserDto - The login credentials containing username and password
    * @returns Promise resolving to authentication result with user data and token on success,
    *          or error response with status 400 if credentials are missing/invalid
-   *
-   * @example
-   * ```
-   * POST /auth/login
-   * {
-   *   "username": "cam",
-   *   "password": "123456"
-   * }
-   * ```
    */
   @Post("login")
   @HttpCode(HttpStatus.OK)
@@ -75,6 +66,13 @@ export class AuthController {
     };
   }
 
+  /**
+   * 
+   * @param createUserDto The login credentials containing username and password
+   * @param res The repsonse object used to set auth cookies on successful registration
+   * @throws BadRequestException if registration fails due to invalid input or username already taken
+   * @returns Promise resolving to registration result with user data and token on success,
+   */
   @Post("register")
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(BodyRequiredGuard) // Checks input before hitting route
@@ -120,7 +118,10 @@ export class AuthController {
   }
 
   /**
-   * Logs the current user out by clearing the auth cookies.
+   * @param res - The response object used to clear auth cookies on logout
+   * @returns void
+   * @throws UnauthorizedException if user is not authenticated (should be handled by JwtAuthGuard)
+   * @description Logs out the user by clearing authentication cookies. Requires a valid JWT token in the Authorization header to identify the user session to log out.
    */
   @Delete("logout")
   @HttpCode(HttpStatus.NO_CONTENT)
