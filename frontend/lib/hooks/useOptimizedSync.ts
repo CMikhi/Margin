@@ -135,7 +135,6 @@ export function useOptimizedSync<T>(
     if (!syncState.isDirty || !syncState.isOnline) return;
 
     try {
-      console.log('🔄 Syncing data to backend...');
       await syncFunction(data);
 
       setSyncState(prev => ({
@@ -146,20 +145,17 @@ export function useOptimizedSync<T>(
       }));
 
       retryCountRef.current = 0;
-      console.log('✅ Data synced successfully');
 
     } catch (error) {
-      console.error('❌ Sync failed:', error);
+      console.error('Sync failed:', error);
 
       retryCountRef.current++;
 
       if (retryCountRef.current < opts.maxRetries) {
-        console.log(`🔄 Retrying sync in ${Math.pow(2, retryCountRef.current)}s...`);
         setTimeout(() => {
           performSync();
         }, Math.pow(2, retryCountRef.current) * 1000); // Exponential backoff
       } else {
-        console.error('❌ Max retries exceeded, sync failed permanently');
         retryCountRef.current = 0;
       }
     }

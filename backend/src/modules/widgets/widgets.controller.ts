@@ -19,6 +19,7 @@ export class WidgetsController {
 
   @Get()
   @ApiResponse({ type: WidgetPlacement, isArray: true })
+  @HttpCode(HttpStatus.OK)
   async findAll(@Request() req: AuthenticatedRequest) {
     const widgets = await this.widgetsService.findAll(req.user.id);
     return { data: widgets };

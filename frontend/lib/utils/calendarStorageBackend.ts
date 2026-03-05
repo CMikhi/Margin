@@ -115,16 +115,8 @@ export function useCalendarStorage() {
   };
 
   const saveEvents = async (events: CalendarEvent[]): Promise<void> => {
-    // Always save to localStorage as backup
     saveEventsToLocal(events);
-
-    if (isAuthenticated) {
-      // For authenticated users, we don't bulk save all events
-      // Instead, individual operations (create/update/delete) should be used
-      console.log(
-        "Use individual create/update/delete operations for backend sync",
-      );
-    }
+    if (isAuthenticated) return;
   };
 
   const createEvent = async (event: CalendarEvent): Promise<CalendarEvent> => {

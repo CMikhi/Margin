@@ -2,10 +2,6 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiClient } from "../api/client";
-import {
-  migrateTokensToCookies,
-  isMigrationNeeded,
-} from "../utils/tokenMigration";
 import type { User, LoginRequest, RegisterRequest } from "../types/api";
 
 interface AuthContextType {
@@ -33,10 +29,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthState = async () => {
     try {
-      // Clean up any stale auth tokens that may have been stored in
-      // localStorage by earlier versions of the app.
-      if (isMigrationNeeded()) {
-        migrateTokensToCookies();
+      if (!apiClient.isAuthenticated()) {
+        setLoading(false);
+        return;
       }
 
       // Attempt to fetch the current user. The HttpOnly auth cookie is sent
