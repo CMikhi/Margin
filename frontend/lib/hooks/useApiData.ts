@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { apiClient } from '../api/client'
+import { useAuth } from './useAuth'
 
 export function useWidgets() {
+  const { isAuthenticated } = useAuth()
   const [widgets, setWidgets] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchWidgets = useCallback(async () => {
-    if (!apiClient.isAuthenticated()) return
+    if (!isAuthenticated) return
 
     try {
       setLoading(true)
@@ -22,7 +24,7 @@ export function useWidgets() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isAuthenticated])
 
   const updateWidgets = async (newWidgets: any[]) => {
     try {
@@ -49,12 +51,13 @@ export function useWidgets() {
 }
 
 export function useNotes() {
+  const { isAuthenticated } = useAuth()
   const [notes, setNotes] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchNotes = useCallback(async () => {
-    if (!apiClient.isAuthenticated()) return
+    if (!isAuthenticated) return
 
     try {
       setLoading(true)
@@ -67,7 +70,7 @@ export function useNotes() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isAuthenticated])
 
   const createNote = async (noteData: any) => {
     try {
@@ -120,12 +123,13 @@ export function useNotes() {
 }
 
 export function useCalendarEvents() {
+  const { isAuthenticated } = useAuth()
   const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchEvents = useCallback(async (start?: string, end?: string) => {
-    if (!apiClient.isAuthenticated()) return
+    if (!isAuthenticated) return
 
     try {
       setLoading(true)
@@ -144,7 +148,7 @@ export function useCalendarEvents() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isAuthenticated])
 
   const createEvent = async (eventData: any) => {
     try {
