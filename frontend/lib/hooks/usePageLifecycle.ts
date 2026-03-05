@@ -30,12 +30,6 @@ export function usePageLifecycle() {
         lastVisible: isVisible ? now : prev.lastVisible,
         lastHidden: !isVisible ? now : prev.lastHidden,
       }));
-
-      if (isVisible) {
-        console.log('📱 Page became visible - resuming sync activity');
-      } else {
-        console.log('📴 Page hidden - reducing sync activity');
-      }
     };
 
     const handleFocus = () => {

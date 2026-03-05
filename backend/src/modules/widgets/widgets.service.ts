@@ -56,12 +56,7 @@ export class WidgetsService {
           .map((w) => w.id)
           .filter((id): id is string => !!id);
 
-        if (idsToDelete.length > 0) {
-          await widgetRepo.delete(idsToDelete);
-          console.log(
-            `Deleted ${widgetsToDelete.length} obsolete widgets for user ${user.id}`,
-          );
-        }
+        if (idsToDelete.length > 0) await widgetRepo.delete(idsToDelete);
       }
 
       // Now upsert the new widgets
@@ -106,10 +101,6 @@ export class WidgetsService {
           results.push(saved);
         }
       }
-
-      console.log(
-        `Successfully upserted ${results.length} widgets for user ${user.id}`,
-      );
       return results;
     });
   }

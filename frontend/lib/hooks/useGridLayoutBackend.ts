@@ -427,11 +427,6 @@ export function useGridLayoutBackend(pageId?: string) {
       const isVisible = !document.hidden;
       const wasVisible = isPageVisibleRef.current;
       isPageVisibleRef.current = isVisible;
-
-      if (!wasVisible && isVisible && pendingSync) {
-        // Page became visible and we have pending changes
-        console.log("📱 Page visible again - syncing pending changes");
-      }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -565,7 +560,6 @@ export function useGridLayoutBackend(pageId?: string) {
         minHiddenDelay,
         Math.min(maxHiddenInterval, timeUntilMax),
       );
-      console.log("📴 Page not visible - delaying sync", { syncDelay });
     } else if (timeSinceLastSync < 5000) {
       // Recent sync - use normal debounce
       syncDelay = 1500;
@@ -577,16 +571,12 @@ export function useGridLayoutBackend(pageId?: string) {
     syncTimeoutRef.current = setTimeout(async () => {
       // Double-check page visibility at sync time
       if (!isPageVisibleRef.current && timeSinceLastSync < 30000) {
-        console.log(
-          "📴 Skipping sync - page not visible and recent sync exists",
-        );
         return;
       }
 
       setPendingSync(true);
 
       try {
-        console.log("🔄 Syncing widgets to backend...");
         const backendWidgets = layoutToBackendWidgets(
           layout,
           textWidgets,
@@ -598,7 +588,6 @@ export function useGridLayoutBackend(pageId?: string) {
         await updateWidgets(backendWidgets);
         lastSyncDataRef.current = currentDataHash;
         lastSyncTimeRef.current = Date.now();
-        console.log("✅ Widgets synced successfully");
       } catch (error) {
         console.error("❌ Failed to sync widgets to backend:", error);
         // Don't update lastSyncDataRef on error so we retry later

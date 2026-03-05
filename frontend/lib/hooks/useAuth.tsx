@@ -2,10 +2,6 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiClient } from "../api/client";
-import {
-  migrateTokensToCookies,
-  isMigrationNeeded,
-} from "../utils/tokenMigration";
 import type { User, LoginRequest, RegisterRequest } from "../types/api";
 
 interface AuthContextType {
@@ -33,13 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthState = async () => {
     try {
-      // First, check if we need to migrate tokens from localStorage to cookies
-      if (isMigrationNeeded()) {
-        migrateTokensToCookies();
-        // Refresh the API client's token from cookies after migration
-        apiClient.refreshFromCookies();
-      }
-
       if (!apiClient.isAuthenticated()) {
         setLoading(false);
         return;
