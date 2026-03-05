@@ -11,6 +11,9 @@ interface RequestWithUser {
   headers: {
     authorization?: string;
   };
+  cookies?: {
+    access_token?: string;
+  };
   user?: {
     id: string;
     username: string;
@@ -30,11 +33,17 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
     const authorization = request.headers.authorization;
 
-    if (!authorization || typeof authorization !== 'string')  throw new UnauthorizedException("Authorization header is missing");
-    
-
-    const [bearer, token] = authorization.split(" ");
-    if (bearer !== "Bearer" || !token) throw new UnauthorizedException("Invalid authorization format");
+    // Extract token from Authorization header or HttpOnly cookie
+    let token: string | undefined;
+    if (authorization && typeof authorization === 'string') {
+      const [bearer, headerToken] = authorization.split(" ");
+      if (bearer !== "Bearer" || !headerToken) throw new UnauthorizedException("Invalid authorization format");
+      token = headerToken;
+    } else if (request.cookies?.access_token) {
+      token = request.cookies.access_token;
+    } else {
+      throw new UnauthorizedException("Authorization header or access_token cookie is missing");
+    }
 
 
     try {

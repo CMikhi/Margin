@@ -4,10 +4,13 @@ import {
   Get,
   Patch,
   Post,
+  Delete,
   UseGuards,
   Request,
+  Response,
   HttpCode,
   HttpStatus,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { BodyRequiredGuard } from "./guard/body-required.guard";
@@ -16,6 +19,28 @@ import { RefreshUserTokensDto } from "./dto/refreshUserTokens.dto";
 import { createUserDto } from "./dto/CreateUser.dto";
 import { loginUserDto } from "./dto/loginUser.dto";
 import type { AuthenticatedRequest } from "../common/AuthenticatedRequest";
+import type { Response as ExpressResponse } from "express";
+
+/** Max-age values for auth cookies */
+const ACCESS_TOKEN_MAX_AGE_S = 15 * 60;       // 15 minutes
+const REFRESH_TOKEN_MAX_AGE_S = 7 * 24 * 3600; // 7 days
+
+function setAuthCookies(res: ExpressResponse, accessToken: string, refreshToken: string): void {
+  const cookieBase = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as const,
+    path: '/',
+  };
+  res.cookie('access_token', accessToken, { ...cookieBase, maxAge: ACCESS_TOKEN_MAX_AGE_S * 1000 });
+  res.cookie('refresh_token', refreshToken, { ...cookieBase, maxAge: REFRESH_TOKEN_MAX_AGE_S * 1000 });
+}
+
+function clearAuthCookies(res: ExpressResponse): void {
+  const cookieBase = { httpOnly: true, path: '/' };
+  res.clearCookie('access_token', cookieBase);
+  res.clearCookie('refresh_token', cookieBase);
+}
 
 @Controller('/auth')
 export class AuthController {
@@ -38,8 +63,12 @@ export class AuthController {
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @UseGuards(BodyRequiredGuard) // Checks input before hitting route
-  async login(@Body() loginUserDto: loginUserDto): Promise<{ message: string; accessToken: string; refreshToken: string; user: { id: string; username: string; role: string }; token_type: string }> {
+  async login(
+    @Body() loginUserDto: loginUserDto,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<{ message: string; accessToken: string; refreshToken: string; user: { id: string; username: string; role: string }; token_type: string }> {
     const result = await this.authService.login(loginUserDto);
+    setAuthCookies(res, result.accessToken, result.refreshToken);
     return {
       ...result,
       token_type: "bearer",
@@ -49,8 +78,12 @@ export class AuthController {
   @Post("register")
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(BodyRequiredGuard) // Checks input before hitting route
-  async register(@Body() createUserDto: createUserDto ): Promise<{ message: string; accessToken: string; refreshToken: string; user: { id: string; username: string; role: string }; token_type: string }> {
+  async register(
+    @Body() createUserDto: createUserDto,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<{ message: string; accessToken: string; refreshToken: string; user: { id: string; username: string; role: string }; token_type: string }> {
     const result = await this.authService.register(createUserDto);
+    setAuthCookies(res, result.accessToken, result.refreshToken);
     return {
       ...result,
       token_type: "bearer",
@@ -58,22 +91,42 @@ export class AuthController {
   }
 
   /**
-   * Refreshes the authentication tokens for a logged-in user
+   * Refreshes the authentication tokens for a logged-in user.
+   * The refresh token can be supplied as an HttpOnly cookie (preferred) or
+   * in the request body for backward-compatible clients.
    * 
-   * @param refreshTokenDto - The refresh token DTO containing the refresh token
+   * @param refreshTokenDto - Optional DTO containing the refresh token
    * @param req - The authenticated request object containing user information
+   * @param res - The response object used to set updated auth cookies
    * @returns Promise resolving to refreshed tokens and user data with token type
-   * @throws UnauthorizedException if refresh token is invalid or expired
+   * @throws UnauthorizedException if refresh token is invalid, expired, or missing
    */
   @Patch("refresh")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(BodyRequiredGuard, JwtAuthGuard)
-  async refresh(@Body() refreshTokenDto: RefreshUserTokensDto, @Request() req: AuthenticatedRequest) {
-    const result = await this.authService.refresh(req, refreshTokenDto.refreshToken);
+  @UseGuards(JwtAuthGuard)
+  async refresh(
+    @Body() refreshTokenDto: RefreshUserTokensDto,
+    @Request() req: AuthenticatedRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
+    const refreshToken = req.cookies?.refresh_token ?? refreshTokenDto.refreshToken;
+    if (!refreshToken) throw new UnauthorizedException("Refresh token is missing");
+    const result = await this.authService.refresh(req, refreshToken);
+    setAuthCookies(res, result.accessToken, result.refreshToken);
     return {
       ...result,
       token_type: "bearer",
     };
+  }
+
+  /**
+   * Logs the current user out by clearing the auth cookies.
+   */
+  @Delete("logout")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  logout(@Response({ passthrough: true }) res: ExpressResponse): void {
+    clearAuthCookies(res);
   }
 
   /**

@@ -1,5 +1,11 @@
 /**
- * Cookie utility functions for secure token storage
+ * Generic cookie utility functions for non-sensitive, client-side state.
+ *
+ * NOTE: Any cookie written via document.cookie is readable by JavaScript and
+ * is therefore vulnerable to theft through XSS attacks. Do NOT store auth
+ * tokens or other sensitive credentials here. Auth tokens (access_token /
+ * refresh_token) are managed by the backend as HttpOnly cookies that the
+ * browser transmits automatically and that JavaScript cannot access.
  */
 
 interface CookieOptions {
@@ -11,7 +17,7 @@ interface CookieOptions {
 }
 
 const DEFAULT_OPTIONS: CookieOptions = {
-  httpOnly: false, // Must be false for client-side access
+  httpOnly: false, // document.cookie is inherently client-side; HttpOnly is server-set only
   secure: process.env.NODE_ENV === 'production', // HTTPS only in production
   sameSite: 'lax',
   maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
@@ -91,35 +97,3 @@ export function areCookiesEnabled(): boolean {
     return false;
   }
 }
-
-// Specific cookie names for auth tokens
-export const AUTH_COOKIES = {
-  ACCESS_TOKEN: 'auth_access_token',
-  REFRESH_TOKEN: 'auth_refresh_token',
-} as const;
-
-/**
- * Auth-specific cookie utilities
- */
-export const authCookies = {
-  setAccessToken: (token: string) => {
-    setCookie(AUTH_COOKIES.ACCESS_TOKEN, token, {
-      maxAge: 15 * 60, // 15 minutes for access token
-    });
-  },
-
-  setRefreshToken: (token: string) => {
-    setCookie(AUTH_COOKIES.REFRESH_TOKEN, token, {
-      maxAge: 7 * 24 * 60 * 60, // 7 days for refresh token
-    });
-  },
-
-  getAccessToken: () => getCookie(AUTH_COOKIES.ACCESS_TOKEN),
-
-  getRefreshToken: () => getCookie(AUTH_COOKIES.REFRESH_TOKEN),
-
-  clearAuthTokens: () => {
-    removeCookie(AUTH_COOKIES.ACCESS_TOKEN);
-    removeCookie(AUTH_COOKIES.REFRESH_TOKEN);
-  },
-};

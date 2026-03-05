@@ -5,7 +5,6 @@ import {
   RegisterRequest,
   AuthResponse,
 } from "../types/api";
-import { authCookies } from "../utils/cookies";
 
 class ApiClient {
   private baseUrl: string;
@@ -13,15 +12,6 @@ class ApiClient {
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-    // Load token from cookies if available
-    this.refreshTokenFromCookies();
-  }
-
-  // Refresh the token from cookies (useful after migration or page reload)
-  private refreshTokenFromCookies(): void {
-    if (typeof window !== "undefined") {
-      this.token = authCookies.getAccessToken();
-    }
   }
 
   private async request<T>(
@@ -31,6 +21,7 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
 
     const config: RequestInit = {
+      credentials: "include", // Send HttpOnly auth cookies automatically
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
@@ -38,7 +29,8 @@ class ApiClient {
       ...options,
     };
 
-    // Add auth token if available
+    // Add in-memory token as Authorization header for backward compatibility
+    // (useful when cookies are not available, e.g. non-browser environments)
     if (this.token) {
       config.headers = {
         ...config.headers,
@@ -77,6 +69,7 @@ class ApiClient {
 
     const response = await fetch(url, {
       method: "POST",
+      credentials: "include", // Receive HttpOnly cookies set by the server
       headers: {
         "Content-Type": "application/json",
       },
@@ -92,13 +85,10 @@ class ApiClient {
 
     const authData: AuthResponse = await response.json();
 
-    // Store tokens in cookies
+    // Keep access token in memory so the Authorization header can be sent
+    // for clients that need it (e.g., non-browser environments).
     if (authData.accessToken) {
       this.token = authData.accessToken;
-      authCookies.setAccessToken(authData.accessToken);
-    }
-    if (authData.refreshToken) {
-      authCookies.setRefreshToken(authData.refreshToken);
     }
 
     return authData;
@@ -109,6 +99,7 @@ class ApiClient {
 
     const response = await fetch(url, {
       method: "POST",
+      credentials: "include", // Receive HttpOnly cookies set by the server
       headers: {
         "Content-Type": "application/json",
       },
@@ -124,13 +115,8 @@ class ApiClient {
 
     const authData: AuthResponse = await response.json();
 
-    // Store tokens in cookies
     if (authData.accessToken) {
       this.token = authData.accessToken;
-      authCookies.setAccessToken(authData.accessToken);
-    }
-    if (authData.refreshToken) {
-      authCookies.setRefreshToken(authData.refreshToken);
     }
 
     return authData;
@@ -142,21 +128,17 @@ class ApiClient {
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    const refreshToken = authCookies.getRefreshToken();
-
-    if (!refreshToken) {
-      throw new Error("No refresh token available");
-    }
-
     const url = `${this.baseUrl}/auth/refresh`;
 
+    // The refresh token is stored as an HttpOnly cookie and is automatically
+    // included by the browser via credentials: 'include'.
     const response = await fetch(url, {
       method: "PATCH",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${this.token}`,
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
       },
-      body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) {
@@ -168,21 +150,25 @@ class ApiClient {
 
     const authData: AuthResponse = await response.json();
 
-    // Update stored tokens in cookies
     if (authData.accessToken) {
       this.token = authData.accessToken;
-      authCookies.setAccessToken(authData.accessToken);
-    }
-    if (authData.refreshToken) {
-      authCookies.setRefreshToken(authData.refreshToken);
     }
 
     return authData;
   }
 
   logout(): void {
+    const token = this.token;
     this.token = null;
-    authCookies.clearAuthTokens();
+    // Fire-and-forget: ask the server to clear HttpOnly auth cookies.
+    // Errors here are non-fatal — the in-memory token is already cleared.
+    fetch(`${this.baseUrl}/auth/logout`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    }).catch(() => {/* ignore */});
   }
 
   // Widget Methods
@@ -265,17 +251,11 @@ class ApiClient {
   // Set token manually (for testing or external auth)
   setToken(token: string): void {
     this.token = token;
-    authCookies.setAccessToken(token);
   }
 
   // Get current token
   getToken(): string | null {
     return this.token;
-  }
-
-  // Refresh token from cookies (useful after migration)
-  refreshFromCookies(): void {
-    this.refreshTokenFromCookies();
   }
 }
 
